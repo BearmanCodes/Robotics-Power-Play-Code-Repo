@@ -75,7 +75,7 @@ public class Cascade extends LinearOpMode {
     // For example, use a value of 2.0 for a 12-tooth spur gear driving a 24-tooth spur gear.
     // This is gearing DOWN for less speed and more torque.
     // For gearing UP, use a gear ratio less than 1.0. Note this will affect the direction of wheel rotation.
-    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
+    static final int     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
     static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // No External Gearing.
     static final double     DRIVE_SPEED             = 0.6;
     static final double     TURN_SPEED              = 0.5;
@@ -84,17 +84,26 @@ public class Cascade extends LinearOpMode {
     public void runOpMode() {
 
         initialize();
-
+        int tickTarget = 1440;
         // Send telemetry message to indicate successful Encoder reset
-        telemetry.addLine("Please for all that is good and holy work");
+        telemetry.addLine("It passed the fire test");
         telemetry.update();
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+        if (gamepad1.a){
+            motor.setDirection(DcMotorSimple.Direction.FORWARD);
+            encoderDrive(1, tickTarget);
+        }
+        if(gamepad1.b){
+            motor.setDirection(DcMotorSimple.Direction.REVERSE);
+            encoderDrive(1, tickTarget);
+        }
+
+
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        encoderDrive(1, (1440 * 5));
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -147,7 +156,7 @@ public class Cascade extends LinearOpMode {
 
     private void initialize() {
         motor = hardwareMap.get(DcMotorEx.class, "motor");
-        motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        motor.setDirection(DcMotorSimple.Direction.FORWARD);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
