@@ -95,7 +95,7 @@ public class CascadeTeleOp extends LinearOpMode {
                 motor.setDirection(DcMotorSimple.Direction.REVERSE);
                 motor.setTargetPosition((int) ticks);
                 motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                motor.setVelocity(1440 * 3);
+                motor.setVelocity(ticks * 3);
                 while (opModeIsActive() && motor.isBusy()){
                     if (gamepad1.x){
                         motor.setVelocity(0);
@@ -104,7 +104,7 @@ public class CascadeTeleOp extends LinearOpMode {
                     telemetry.addLine("Doing the thing, yeah yeah doing the thing");
                     telemetry.update();
                 }
-                motor.setVelocity(1440 * 3);
+                motor.setVelocity(ticks * 3);
                 motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
