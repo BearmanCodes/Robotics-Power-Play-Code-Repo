@@ -113,7 +113,7 @@ public class Encoder_Drive extends LinearOpMode {
                 }
                 GoServoAwesometasticDude();
                 target += 240;
-            pos = tetrix.getCurrentPosition();
+                pos = tetrix.getCurrentPosition();
                 error = target - pos;
             }
     }
