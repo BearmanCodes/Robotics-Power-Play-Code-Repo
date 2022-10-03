@@ -52,14 +52,13 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Failure V7", group="Linear Opmode")
-public class DriveTrain extends LinearOpMode {
+@TeleOp(name="Stress Test", group="Linear Opmode")
+public class Stress_Test extends LinearOpMode {
 
     // Declare OpMode members.
+    private ElapsedTime runtime = new ElapsedTime();
     private DcMotorEx leftDrive;
     private DcMotorEx rightDrive;
-    double leftPower;
-    double rightPower;
 
     @Override
     public void runOpMode() {
@@ -70,13 +69,13 @@ public class DriveTrain extends LinearOpMode {
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            dualPower(leftPower, rightPower);
-            leftPower =  (gamepad1.left_stick_y + -gamepad1.left_stick_x) * 0.5;
-            rightPower = (gamepad1.left_stick_y + gamepad1.left_stick_x) * 0.5;
+                dualPower(-1, -1);
         }
     }
+
     private void initialize(){
         leftDrive = hardwareMap.get(DcMotorEx.class, "leftDrive");
         rightDrive = hardwareMap.get(DcMotorEx.class, "rightDrive");

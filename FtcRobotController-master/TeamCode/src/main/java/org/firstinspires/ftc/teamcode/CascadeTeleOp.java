@@ -59,7 +59,7 @@ public class CascadeTeleOp extends LinearOpMode {
     int error = 0;
     int pos = 0;
     double speed = 0.5;
-    double ticks = 1440.0;
+    double ticks = 300.0;
 
     @Override
     public void runOpMode() {
