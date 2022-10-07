@@ -59,7 +59,7 @@ public class CascadeTeleOp extends LinearOpMode {
     int error = 0;
     int pos = 0;
     double speed = 0.5;
-    double ticks = 300.0;
+    double ticks = 45.0;
 
     @Override
     public void runOpMode() {
@@ -77,7 +77,7 @@ public class CascadeTeleOp extends LinearOpMode {
                 motor.setDirection(DcMotorSimple.Direction.FORWARD);
                 motor.setTargetPosition((int) ticks);
                 motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                motor.setVelocity(ticks * 3);
+                motor.setVelocity(ticks * 8);
                 while (opModeIsActive() && motor.isBusy()){
                     if (gamepad1.x){
                         motor.setVelocity(0);
@@ -86,7 +86,7 @@ public class CascadeTeleOp extends LinearOpMode {
                     telemetry.addLine("Doing the thing, yeah yeah doing the thing");
                     telemetry.update();
                 }
-                motor.setVelocity(ticks * 3);
+                motor.setVelocity(ticks * 8);
                 motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
@@ -95,7 +95,7 @@ public class CascadeTeleOp extends LinearOpMode {
                 motor.setDirection(DcMotorSimple.Direction.REVERSE);
                 motor.setTargetPosition((int) ticks);
                 motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                motor.setVelocity(ticks * 3);
+                motor.setVelocity(ticks * 8);
                 while (opModeIsActive() && motor.isBusy()){
                     if (gamepad1.x){
                         motor.setVelocity(0);
@@ -103,8 +103,9 @@ public class CascadeTeleOp extends LinearOpMode {
                     }
                     telemetry.addLine("Doing the thing, yeah yeah doing the thing");
                     telemetry.update();
+
                 }
-                motor.setVelocity(ticks * 3);
+                motor.setVelocity(ticks * 8);
                 motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
