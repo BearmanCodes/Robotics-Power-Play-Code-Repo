@@ -35,8 +35,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -56,10 +60,11 @@ import com.qualcomm.robotcore.util.Range;
 public class CascadeTeleOp extends LinearOpMode {
 
     private DcMotorEx motor;
+    DistanceSensor colorSensor;
     int error = 0;
     int pos = 0;
-    double speed = 0.5;
-    double ticks = 45.0;
+    double distance;
+    double ticks = 15.0;
 
     @Override
     public void runOpMode() {
@@ -72,42 +77,49 @@ public class CascadeTeleOp extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            distance = colorSensor.getDistance(DistanceUnit.CM);
 
-            if (gamepad1.a){
-                motor.setDirection(DcMotorSimple.Direction.FORWARD);
-                motor.setTargetPosition((int) ticks);
-                motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                motor.setVelocity(ticks * 8);
-                while (opModeIsActive() && motor.isBusy()){
-                    if (gamepad1.x){
-                        motor.setVelocity(0);
-                        break;
+            if (gamepad1.a) {
+                if (distance < 4.2) {
+                    motor.setDirection(DcMotorSimple.Direction.FORWARD);
+                    motor.setTargetPosition((int) ticks);
+                    motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    motor.setPower(1);
+                    while (opModeIsActive() && motor.isBusy()) {
+                        if (gamepad1.x) {
+                            motor.setPower(0);
+                            break;
+                        }
+                        telemetry.addLine("Doing the thing, yeah yeah doing the thing");
+                        telemetry.update();
                     }
-                    telemetry.addLine("Doing the thing, yeah yeah doing the thing");
+                    motor.setPower(0);
+                    motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                } else {
+                    telemetry.addLine("Are you trying to kill me?");
                     telemetry.update();
                 }
-                motor.setVelocity(ticks * 8);
-                motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
 
-            if (gamepad1.b){
-                motor.setDirection(DcMotorSimple.Direction.REVERSE);
-                motor.setTargetPosition((int) ticks);
-                motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                motor.setVelocity(ticks * 8);
-                while (opModeIsActive() && motor.isBusy()){
-                    if (gamepad1.x){
-                        motor.setVelocity(0);
-                        break;
+            if (gamepad1.b) {
+                if (distance > 4.2) {
+                    motor.setDirection(DcMotorSimple.Direction.REVERSE);
+                    motor.setPower(1);
+                    distance = colorSensor.getDistance(DistanceUnit.CM);
+                    while (opModeIsActive() && distance > 4.2) {
+                        if (gamepad1.x) {
+                            motor.setPower(0);
+                            break;
+                        }
+                        distance = colorSensor.getDistance(DistanceUnit.CM);
+                        telemetry.addLine("Doing the thing, yeah yeah doing the thing");
+                        telemetry.update();
                     }
-                    telemetry.addLine("Doing the thing, yeah yeah doing the thing");
-                    telemetry.update();
-
+                    motor.setPower(0);
+                    motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
-                motor.setVelocity(ticks * 8);
-                motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
         }
     }
@@ -117,5 +129,6 @@ public class CascadeTeleOp extends LinearOpMode {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor");
     }
 }
