@@ -32,15 +32,18 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.robot.Robot;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 
 
 /**
@@ -55,16 +58,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
+@Disabled
+@TeleOp(name="TickFinder", group="Linear Opmode")
+public class TickFinder extends LinearOpMode {
 
-@TeleOp(name="CascadingOP", group="Linear Opmode")
-public class CascadeTeleOp extends LinearOpMode {
-
+    int ticks;
+    double speed;
+    Gamepad currentGamepad = new Gamepad();
+    Gamepad previousGamepad = new Gamepad();
     private DcMotorEx motor;
-    DistanceSensor colorSensor;
-    int error = 0;
-    int pos = 0;
-    double distance;
-    double ticks = 15.0;
+    private static final DecimalFormat df = new DecimalFormat("0.00");
 
     @Override
     public void runOpMode() {
@@ -77,52 +80,63 @@ public class CascadeTeleOp extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            distance = colorSensor.getDistance(DistanceUnit.CM);
+            try {
+                previousGamepad.copy(currentGamepad);
+                currentGamepad.copy(gamepad1);
+            } catch (RobotCoreException e){
+                telemetry.addData("Error! ", e);
+                telemetry.update();
+            }
+            telemetry.addLine("Press Y to add ticks and X to subtract ticks");
+            telemetry.addData("Ticks: ", ticks);
+            telemetry.addLine("Press the Right Bumper to add speed and the Left Bumper to subtract speed.");
+            telemetry.addData("Speed: ", speed);
+            telemetry.addLine("Press A to go!");
+            telemetry.update();
 
-            if (gamepad1.a) {
-                motor.setTargetPosition((int) ticks);
+            GamepadShenanigans();
+
+            if (gamepad1.a){
+                motor.setTargetPosition(ticks);
                 motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                motor.setPower(1);
-                while (opModeIsActive() && motor.isBusy()) {
-                    if (gamepad1.x) {
+                motor.setPower(speed);
+                while (opModeIsActive() && motor.isBusy()){
+                    if (gamepad1.b){
                         motor.setPower(0);
                         break;
                     }
-                    telemetry.addLine("Doing the thing, yeah yeah doing the thing");
+                    telemetry.addLine("We're moving!");
+                    telemetry.addData("Ticks: ", motor.getCurrentPosition());
+                    telemetry.addData("Target: ", ticks);
+                    telemetry.addLine("Press B in case something goes WACKO!");
                     telemetry.update();
                 }
                 motor.setPower(0);
                 motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
-
-            if (gamepad1.b) {
-                if (distance > 4.2) {
-                    motor.setTargetPosition((int) -ticks);
-                    motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    motor.setPower(1);
-                    distance = colorSensor.getDistance(DistanceUnit.CM);
-                    while (opModeIsActive() && distance > 4.2) {
-                        if (gamepad1.x) {
-                            motor.setPower(0);
-                            break;
-                        }
-                        distance = colorSensor.getDistance(DistanceUnit.CM);
-                        telemetry.addLine("Doing the thing, yeah yeah doing the thing");
-                        telemetry.update();
-                    }
-                    motor.setPower(0);
-                    motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                }
+                motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
         }
     }
     private void initialize(){
         motor = hardwareMap.get(DcMotorEx.class, "motor");
+        motor.setDirection(DcMotorSimple.Direction.FORWARD);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor");
+    }
+
+    private void GamepadShenanigans(){
+        if (currentGamepad.y && !previousGamepad.y){
+            ticks++;
+        }
+        if (currentGamepad.x && !previousGamepad.x){
+            ticks--;
+        }
+        if (currentGamepad.right_bumper && !previousGamepad.right_bumper){
+            speed = speed + 0.05;
+        }
+        if (currentGamepad.left_bumper && !previousGamepad.left_bumper){
+            speed = speed - 0.05;
+        }
     }
 }
