@@ -73,6 +73,9 @@ public class CascadeTeleOp extends LinearOpMode {
 
         initialize();
 
+        motor.setPower(0.2);
+        sleep(350);
+        motor.setPower(0);
         waitForStart();
 
         // run until the end of the match (driver presses STOP)
@@ -123,6 +126,7 @@ public class CascadeTeleOp extends LinearOpMode {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motor.setDirection(DcMotorSimple.Direction.REVERSE);
         colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor");
     }
 }

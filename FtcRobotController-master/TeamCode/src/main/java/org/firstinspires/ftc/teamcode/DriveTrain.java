@@ -73,8 +73,12 @@ public class DriveTrain extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             dualPower(leftPower, rightPower);
+            /*
             leftPower =  (gamepad1.left_stick_y + -gamepad1.left_stick_x) * 0.5;
             rightPower = (gamepad1.left_stick_y + gamepad1.left_stick_x) * 0.5;
+             */
+            leftPower =  (gamepad1.left_stick_y + -gamepad1.left_stick_x);
+            rightPower = (gamepad1.left_stick_y + gamepad1.left_stick_x);
         }
     }
     private void initialize(){
