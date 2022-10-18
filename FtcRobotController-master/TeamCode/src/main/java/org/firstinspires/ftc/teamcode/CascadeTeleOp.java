@@ -64,7 +64,7 @@ public class CascadeTeleOp extends LinearOpMode {
     int error = 0;
     int pos = 0;
     double distance;
-    double ticks = 15.0;
+    int ticks = 10;
 
     @Override
     public void runOpMode() {
@@ -83,27 +83,18 @@ public class CascadeTeleOp extends LinearOpMode {
             distance = colorSensor.getDistance(DistanceUnit.CM);
 
             if (gamepad1.a) {
-                motor.setTargetPosition((int) ticks);
-                motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 motor.setPower(1);
-                while (opModeIsActive() && motor.isBusy()) {
-                    if (gamepad1.x) {
-                        motor.setPower(0);
-                        break;
-                    }
-                    telemetry.addLine("Doing the thing, yeah yeah doing the thing");
-                    telemetry.update();
-                }
+                telemetry.addLine("Doing the thing, yeah yeah doing the thing");
+                telemetry.update();
+                sleep(2000);
                 motor.setPower(0);
-                motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                telemetry.addLine("DONE!");
+                telemetry.update();
             }
 
             if (gamepad1.b) {
                 if (distance > 4.2) {
-                    motor.setTargetPosition((int) -ticks);
-                    motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                    motor.setPower(1);
+                    motor.setPower(-1);
                     distance = colorSensor.getDistance(DistanceUnit.CM);
                     while (opModeIsActive() && distance > 4.2) {
                         if (gamepad1.x) {
@@ -112,11 +103,11 @@ public class CascadeTeleOp extends LinearOpMode {
                         }
                         distance = colorSensor.getDistance(DistanceUnit.CM);
                         telemetry.addLine("Doing the thing, yeah yeah doing the thing");
+                        telemetry.addData("Tick: ", motor.getCurrentPosition());
                         telemetry.update();
+
                     }
                     motor.setPower(0);
-                    motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 }
             }
         }
