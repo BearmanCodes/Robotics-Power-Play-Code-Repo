@@ -32,133 +32,76 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 
 /**
- * This file illustrates the concept of driving a path based on encoder counts.
- * The code is structured as a LinearOpMode
+ * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
+ * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
+ * of the FTC Driver Station. When a selection is made from the menu, the corresponding OpMode
+ * class is instantiated on the Robot Controller and executed.
  *
- * The code REQUIRES that you DO have encoders on the wheels,
- *   otherwise you would use: RobotAutoDriveByTime;
- *
- *  This code ALSO requires that the drive Motors have been configured such that a positive
- *  power command moves them forward, and causes the encoders to count UP.
- *
- *   The desired path in this example is:
- *   - Drive forward for 48 inches
- *   - Spin right for 12 Inches
- *   - Drive Backward for 24 inches
- *   - Stop and close the claw.
- *
- *  The code is written using a method called: encoderDrive(speed, leftInches, rightInches, timeoutS)
- *  that performs the actual movement.
- *  This method assumes that each movement is relative to the last stopping place.
- *  There are other ways to perform encoder based moves, but this method is probably the simplest.
- *  This code uses the RUN_TO_POSITION mode to enable the Motor controllers to generate the run profile
+ * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
+ * It includes all the skeletal structure that all linear OpModes contain.
  *
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="Cascading", group="Tests")
+@Autonomous(name="CascadingAuto", group="Linear Opmode")
 public class Cascade extends LinearOpMode {
 
-    /* Declare OpMode members. */
     private DcMotorEx motor;
-
-    // Calculate the COUNTS_PER_INCH for your specific drive train.
-    // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
-    // For external drive gearing, set DRIVE_GEAR_REDUCTION as needed.
-    // For example, use a value of 2.0 for a 12-tooth spur gear driving a 24-tooth spur gear.
-    // This is gearing DOWN for less speed and more torque.
-    // For gearing UP, use a gear ratio less than 1.0. Note this will affect the direction of wheel rotation.
-    static final int     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // No External Gearing.
-    static final double     DRIVE_SPEED             = 0.6;
-    static final double     TURN_SPEED              = 0.5;
+    DistanceSensor colorSensor;
+    double distance;
 
     @Override
     public void runOpMode() {
+        telemetry.addData("Status", "NO FIRE!");
+        telemetry.update();
 
         initialize();
-        int tickTarget = 1440;
-        // Send telemetry message to indicate successful Encoder reset
-        telemetry.addLine("It passed the fire test");
-        telemetry.update();
 
-        // Wait for the game to start (driver presses PLAY)
+        motor.setPower(0.2);
+        sleep(350);
+        motor.setPower(0);
         waitForStart();
 
-        if (gamepad1.a){
-            motor.setDirection(DcMotorSimple.Direction.FORWARD);
-            encoderDrive(1, tickTarget);
-        }
-        if(gamepad1.b){
-            motor.setDirection(DcMotorSimple.Direction.REVERSE);
-            encoderDrive(1, tickTarget);
-        }
-
-
-        // Step through each leg of the path,
-        // Note: Reverse movement is obtained by setting a negative distance (not speed)
-
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
-        sleep(1000);  // pause to display final telemetry message.
-    }
-
-    /*
-     *  Method to perform a relative move, based on encoder counts.
-     *  Encoders are not reset as the move is based on the current position.
-     *  Move will stop if any of three conditions occur:
-     *  1) Move gets to the desired position
-     *  2) Move runs out of time
-     *  3) Driver stops the opmode running.
-     */
-    public void encoderDrive(double speed,
-                             int ticks) {
-
-        // Ensure that the opmode is still active
         if (opModeIsActive()) {
-
-            motor.setTargetPosition(ticks);
-
-            // Turn On RUN_TO_POSITION
-            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // reset the timeout time and start motion.
-            motor.setPower(speed);
-
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-            // its target position, the motion will stop.  This is "safer" in the event that the robot will
-            // always end the motion as soon as possible.
-            // However, if you require that BOTH motors have finished their moves before the robot continues
-            // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() && motor.isBusy()){
-                telemetry.addLine("Doing stuff");
-                telemetry.update();
-
-            }
-
-            // Stop all motion;
+            distance = colorSensor.getDistance(DistanceUnit.CM);
+            motor.setPower(1);
+            telemetry.addLine("Doing the thing, yeah yeah doing the thing");
+            telemetry.update();
+            sleep(2000);
             motor.setPower(0);
-
-            // Turn off RUN_TO_POSITION
-            motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-            sleep(250);   // optional pause after each move.
+            sleep(3575);
+            motor.setPower(-1);
+            distance = colorSensor.getDistance(DistanceUnit.CM);
+            while (opModeIsActive() && distance > 4.2) {
+                distance = colorSensor.getDistance(DistanceUnit.CM);
+                telemetry.addLine("Reversing....");
+                telemetry.update();
+                distance = colorSensor.getDistance(DistanceUnit.CM);
+            }
+            motor.setPower(0);
         }
     }
 
-    private void initialize() {
+    private void initialize(){
         motor = hardwareMap.get(DcMotorEx.class, "motor");
-        motor.setDirection(DcMotorSimple.Direction.FORWARD);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor");
     }
 }
