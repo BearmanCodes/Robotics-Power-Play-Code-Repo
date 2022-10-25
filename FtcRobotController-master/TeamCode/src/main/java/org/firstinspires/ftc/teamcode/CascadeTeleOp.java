@@ -59,7 +59,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @TeleOp(name="CascadingOP", group="Linear Opmode")
 public class CascadeTeleOp extends LinearOpMode {
 
+    //private DcMotorEx coreHex;
     private DcMotorEx motor;
+    private DcMotorEx extend;
     DistanceSensor colorSensor;
     int error = 0;
     int pos = 0;
@@ -81,12 +83,27 @@ public class CascadeTeleOp extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             distance = colorSensor.getDistance(DistanceUnit.CM);
-
+            /*
+            coreHex.setPower(gamepad1.left_trigger);
+            coreHex.setPower(-gamepad1.right_trigger * 0.6);
+             */
+            extend.setPower(-gamepad1.left_trigger * 0.2);
+            extend.setPower(gamepad1.right_trigger * 0.3);
             if (gamepad1.a) {
                 motor.setPower(1);
                 telemetry.addLine("Doing the thing, yeah yeah doing the thing");
                 telemetry.update();
-                sleep(2000);
+                long start = System.currentTimeMillis();
+                long end = start + 1900;
+                while (System.currentTimeMillis() < end){
+                    if (gamepad1.x) {
+                        motor.setPower(0);
+                        break;
+                    }
+                    telemetry.addLine("Doing the thing, yeah yeah doing the thing");
+                    telemetry.addLine("Press X if things go Wacko!!!!!!!!!!!");
+                    telemetry.update();
+                }
                 motor.setPower(0);
                 telemetry.addLine("DONE!");
                 telemetry.update();
@@ -119,5 +136,13 @@ public class CascadeTeleOp extends LinearOpMode {
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motor.setDirection(DcMotorSimple.Direction.REVERSE);
         colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor");
+        extend = hardwareMap.get(DcMotorEx.class, "extend");
+        extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        extend.setDirection(DcMotorSimple.Direction.FORWARD);
+        /*
+        coreHex = hardwareMap.get(DcMotorEx.class, "claw");
+        coreHex.setDirection(DcMotorSimple.Direction.FORWARD);
+         */
+
     }
 }

@@ -55,7 +55,6 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name="SpinnyCore", group="Linear Opmode")
 public class SpinnyCore extends LinearOpMode {
 
-    double power;
 
     private DcMotorEx coreHex;
 
@@ -72,12 +71,12 @@ public class SpinnyCore extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             coreHex.setPower(gamepad1.left_trigger);
-            coreHex.setPower(-gamepad1.right_trigger);
+            coreHex.setPower(-gamepad1.right_trigger * 0.6);
         }
     }
 
     private void initialize(){
-        coreHex = hardwareMap.get(DcMotorEx.class, "clawv1");
+        coreHex = hardwareMap.get(DcMotorEx.class, "claw");
         coreHex.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 }
