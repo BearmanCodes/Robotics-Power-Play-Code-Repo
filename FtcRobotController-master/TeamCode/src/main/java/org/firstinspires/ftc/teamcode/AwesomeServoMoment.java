@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -52,45 +53,43 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Failure V7", group="Linear Opmode")
-public class DriveTrain extends LinearOpMode {
+@TeleOp(name="AwesomeServoMoment", group="Servotastic Baby")
 
-    // Declare OpMode members.
-    private DcMotorEx leftDrive;
-    private DcMotorEx rightDrive;
-    double leftPower;
-    double rightPower;
+public class AwesomeServoMoment extends LinearOpMode {
+
+    private CRServo servo;
+    private DcMotorEx coreHex;
 
     @Override
     public void runOpMode() {
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
 
         initialize();
 
-        // Wait for the game to start (driver presses PLAY)
         waitForStart();
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            dualPower(leftPower, rightPower);
-            /*
-            leftPower =  (gamepad1.left_stick_y + -gamepad1.left_stick_x) * 0.5;
-            rightPower = (gamepad1.left_stick_y + gamepad1.left_stick_x) * 0.5;
-             */
-            leftPower =  (gamepad1.left_stick_y + -gamepad1.left_stick_x);
-            rightPower = (gamepad1.left_stick_y + gamepad1.left_stick_x);
+            coreHex.setPower(gamepad1.left_trigger);
+            coreHex.setPower(-gamepad1.right_trigger * 0.6);
+            if (gamepad1.a){
+                servo.setPower(1);
+            }
+            if (gamepad1.b){
+                servo.setPower(-1);
+            }
+            if (gamepad1.x){
+                servo.setPower(0);
+            }
         }
     }
+
     private void initialize(){
-        leftDrive = hardwareMap.get(DcMotorEx.class, "leftDrive");
-        rightDrive = hardwareMap.get(DcMotorEx.class, "rightDrive");
-        leftDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        servo = hardwareMap.get(CRServo.class, "servo");
+        servo.setPower(0);
+        servo.setDirection(DcMotorSimple.Direction.FORWARD);
+        coreHex = hardwareMap.get(DcMotorEx.class, "hex");
+        coreHex.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        coreHex.setDirection(DcMotorSimple.Direction.FORWARD);
     }
-    private void dualPower(double speed1, double speed2){
-        leftDrive.setPower(speed1);
-        rightDrive.setPower(speed2);
-    }
+
 }
