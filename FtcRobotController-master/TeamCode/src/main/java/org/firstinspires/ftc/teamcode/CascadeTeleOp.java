@@ -37,7 +37,7 @@ public class CascadeTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             distance = colorSensor.getDistance(DistanceUnit.CM); //Update the color sensor distance right off the bat.
             extend.setPower(extendPower); //Set the extendable arm motor power to the variable.
-            extendPower = -gamepad1.left_trigger * 0.2 + gamepad1.right_trigger * 0.3; //Set the power variable to the triggers.
+            extendPower = -gamepad1.left_trigger * 0.75 + gamepad1.right_trigger * 0.75; //Set the power variable to the triggers.
             if (gamepad1.a) { //Do everything in here once you press A.
                 motor.setPower(1); //Go full ham on the motor. (Wish I could use velocity but the encoder on the 40:1 is brokey)
                 telemetry.addLine("It's a-moving!");
