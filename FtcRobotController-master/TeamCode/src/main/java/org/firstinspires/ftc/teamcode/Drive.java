@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -60,6 +61,14 @@ public class Drive extends LinearOpMode {
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
     BNO055IMU imu;
+    double backRightPower;
+    double frontRightPower;
+    double backLeftPower;
+    double frontLeftPower;
+    float Vertical;
+    float Horizontal;
+    float Pivot;
+
 
 
     @Override
@@ -70,21 +79,14 @@ public class Drive extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            double y = -gamepad1.left_stick_y;
-            double x = gamepad1.left_stick_x * 1.1;
-            double rx = gamepad1.right_stick_x;
+            Vertical = gamepad1.left_stick_y;
+            Horizontal = gamepad1.left_stick_x;
+            Pivot = gamepad1.right_stick_x;
 
-            double botHeading = -imu.getAngularOrientation().firstAngle;
-
-            double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
-            double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
-
-
-            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (rotY + rotX + rx) / denominator;
-            double frontRightPower = (rotY - rotX - rx) / denominator;
-            double backLeftPower = (rotY - rotX + rx) / denominator;
-            double backRightPower = (rotY + rotX - rx) / denominator;
+            frontLeftPower = (-Pivot + (Vertical - Horizontal)) * 0.9;
+            frontRightPower = (Pivot + Vertical + Horizontal) * 0.9;
+            backRightPower = (Pivot + (Vertical - Horizontal)) * 0.9;
+            backLeftPower = (-Pivot + Vertical + Horizontal) * 0.9;
 
             frontLeft.setPower(frontLeftPower);
             frontRight.setPower(frontRightPower);
@@ -99,6 +101,7 @@ public class Drive extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
