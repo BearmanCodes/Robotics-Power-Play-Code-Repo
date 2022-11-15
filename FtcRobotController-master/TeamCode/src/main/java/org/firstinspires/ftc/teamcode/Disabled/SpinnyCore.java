@@ -27,9 +27,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Disabled;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -52,63 +51,32 @@ import com.qualcomm.robotcore.util.Range;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-
-@TeleOp(name="Awesome Drive", group="Cool OP modes")
-public class Drive extends LinearOpMode {
-
-    private DcMotorEx frontLeft;
-    private DcMotorEx frontRight;
-    private DcMotorEx backLeft;
-    private DcMotorEx backRight;
-    BNO055IMU imu;
-    double backRightPower;
-    double frontRightPower;
-    double backLeftPower;
-    double frontLeftPower;
-    double Vertical;
-    double Horizontal;
-    double Pivot;
+@Disabled
+@TeleOp(name="SpinnyCore", group="Linear Opmode")
+public class SpinnyCore extends LinearOpMode {
 
 
+    private DcMotorEx coreHex;
 
     @Override
     public void runOpMode() {
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
         initialize();
 
+        // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            Vertical = gamepad1.left_stick_y;
-            Horizontal = gamepad1.left_stick_x * 1.4;
-            Pivot = gamepad1.right_stick_x;
-
-            frontLeftPower = (-Pivot + (Vertical - Horizontal)) * 0.85;
-            frontRightPower = (Pivot + Vertical + Horizontal) * 0.85;
-            backRightPower = (Pivot + (Vertical - Horizontal)) * 0.85;
-            backLeftPower = (-Pivot + Vertical + Horizontal) * 0.85;
-
-            frontLeft.setPower(frontLeftPower);
-            frontRight.setPower(frontRightPower);
-            backLeft.setPower(backLeftPower);
-            backRight.setPower(backRightPower);
-
+            coreHex.setPower(gamepad1.left_trigger);
+            coreHex.setPower(-gamepad1.right_trigger * 0.6);
         }
     }
 
     private void initialize(){
-        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
-        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        imu.initialize(parameters);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        coreHex = hardwareMap.get(DcMotorEx.class, "claw");
+        coreHex.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 }

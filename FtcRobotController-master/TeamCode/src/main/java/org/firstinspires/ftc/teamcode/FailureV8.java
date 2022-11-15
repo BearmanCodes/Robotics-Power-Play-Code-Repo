@@ -29,19 +29,12 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -57,51 +50,58 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="CascadingAuto", group="Linear Opmode")
-public class Cascade extends LinearOpMode {
+@TeleOp(name="FailureV8", group="Cool OP modes")
+public class FailureV8 extends LinearOpMode {
 
-    private DcMotorEx motor;
-    DistanceSensor colorSensor;
-    double distance;
+    private DcMotorEx frontLeft;
+    private DcMotorEx frontRight;
+    private DcMotorEx backLeft;
+    private DcMotorEx backRight;
+    double backRightPower;
+    double frontRightPower;
+    double backLeftPower;
+    double frontLeftPower;
+    double Vertical;
+    double Horizontal;
+    double Pivot;
+
+
+
 
     @Override
     public void runOpMode() {
-        telemetry.addData("Status", "NO FIRE!");
-        telemetry.update();
-
         initialize();
 
-        motor.setPower(0.2);
-        sleep(350);
-        motor.setPower(0);
         waitForStart();
 
-        if (opModeIsActive()) {
-            distance = colorSensor.getDistance(DistanceUnit.CM);
-            motor.setPower(1);
-            telemetry.addLine("Doing the thing, yeah yeah doing the thing");
-            telemetry.update();
-            sleep(2000);
-            motor.setPower(0);
-            sleep(3575);
-            motor.setPower(-1);
-            distance = colorSensor.getDistance(DistanceUnit.CM);
-            while (opModeIsActive() && distance > 4.2) {
-                distance = colorSensor.getDistance(DistanceUnit.CM);
-                telemetry.addLine("Reversing....");
-                telemetry.update();
-                distance = colorSensor.getDistance(DistanceUnit.CM);
-            }
-            motor.setPower(0);
+        // run until the end of the match (driver presses STOP)
+        while (opModeIsActive()) {
+            Vertical = gamepad1.left_stick_y;
+            Horizontal = gamepad1.left_stick_x * 1.4;
+            Pivot = gamepad1.right_stick_x;
+
+            frontLeftPower = (-Pivot + (Vertical - Horizontal)) * 0.85;
+            frontRightPower = (Pivot + Vertical + Horizontal) * 0.85;
+            backRightPower = (Pivot + (Vertical - Horizontal)) * 0.85;
+            backLeftPower = (-Pivot + Vertical + Horizontal) * 0.85;
+
+            frontLeft.setPower(frontLeftPower);
+            frontRight.setPower(frontRightPower);
+            backLeft.setPower(backLeftPower);
+            backRight.setPower(backRightPower);
+
         }
     }
 
     private void initialize(){
-        motor = hardwareMap.get(DcMotorEx.class, "motor");
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motor.setDirection(DcMotorSimple.Direction.REVERSE);
-        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 }

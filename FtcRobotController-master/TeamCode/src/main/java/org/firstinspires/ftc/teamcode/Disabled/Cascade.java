@@ -27,16 +27,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Disabled;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -51,32 +56,52 @@ import com.qualcomm.robotcore.util.Range;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
+@Disabled
+@Autonomous(name="CascadingAuto", group="Linear Opmode")
+public class Cascade extends LinearOpMode {
 
-@TeleOp(name="SpinnyCore", group="Linear Opmode")
-public class SpinnyCore extends LinearOpMode {
-
-
-    private DcMotorEx coreHex;
+    private DcMotorEx motor;
+    DistanceSensor colorSensor;
+    double distance;
 
     @Override
     public void runOpMode() {
-        telemetry.addData("Status", "Initialized");
+        telemetry.addData("Status", "NO FIRE!");
         telemetry.update();
 
         initialize();
 
-        // Wait for the game to start (driver presses PLAY)
+        motor.setPower(0.2);
+        sleep(350);
+        motor.setPower(0);
         waitForStart();
 
-        // run until the end of the match (driver presses STOP)
-        while (opModeIsActive()) {
-            coreHex.setPower(gamepad1.left_trigger);
-            coreHex.setPower(-gamepad1.right_trigger * 0.6);
+        if (opModeIsActive()) {
+            distance = colorSensor.getDistance(DistanceUnit.CM);
+            motor.setPower(1);
+            telemetry.addLine("Doing the thing, yeah yeah doing the thing");
+            telemetry.update();
+            sleep(2000);
+            motor.setPower(0);
+            sleep(3575);
+            motor.setPower(-1);
+            distance = colorSensor.getDistance(DistanceUnit.CM);
+            while (opModeIsActive() && distance > 4.2) {
+                distance = colorSensor.getDistance(DistanceUnit.CM);
+                telemetry.addLine("Reversing....");
+                telemetry.update();
+                distance = colorSensor.getDistance(DistanceUnit.CM);
+            }
+            motor.setPower(0);
         }
     }
 
     private void initialize(){
-        coreHex = hardwareMap.get(DcMotorEx.class, "claw");
-        coreHex.setDirection(DcMotorSimple.Direction.FORWARD);
+        motor = hardwareMap.get(DcMotorEx.class, "motor");
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor");
     }
 }
