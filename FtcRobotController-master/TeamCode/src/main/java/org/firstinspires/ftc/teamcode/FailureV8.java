@@ -80,10 +80,10 @@ public class FailureV8 extends LinearOpMode {
             Horizontal = gamepad1.left_stick_x * 1.4;
             Pivot = gamepad1.right_stick_x;
 
-            frontLeftPower = (-Pivot + (Vertical - Horizontal)) * 0.85;
-            frontRightPower = (Pivot + Vertical + Horizontal) * 0.85;
-            backRightPower = (Pivot + (Vertical - Horizontal)) * 0.85;
-            backLeftPower = (-Pivot + Vertical + Horizontal) * 0.85;
+            frontLeftPower = (-Pivot + (Vertical - Horizontal)) * 0.4;
+            frontRightPower = (Pivot + Vertical + Horizontal);
+            backRightPower = (Pivot + (Vertical - Horizontal)) * 0.4;
+            backLeftPower = (-Pivot + Vertical + Horizontal) * 0.4;
 
             frontLeft.setPower(frontLeftPower);
             frontRight.setPower(frontRightPower);
@@ -98,7 +98,10 @@ public class FailureV8 extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
