@@ -12,8 +12,7 @@ public class Claw extends LinearOpMode {
     Servo servo;
     Gamepad currentGamepad = new Gamepad(); //These 2 are for an edge detector in case I need one later.
     Gamepad previousGamepad = new Gamepad();
-    double retract = 0.20;
-    double extend = 1;
+
 
     @Override
     public void runOpMode() {
@@ -25,10 +24,10 @@ public class Claw extends LinearOpMode {
         while (opModeIsActive()) {
             edgeDetector();
             if (gamepad1.a){
-                servo.setPosition(extend);
+                servo.setPosition(servo.getPosition() + 0.1);
             }
             if (gamepad1.b){
-                servo.setPosition(retract);
+                servo.setPosition(servo.getPosition() - 0.1);
             }
             telemetry.addData("Position: ", servo.getPosition());
             telemetry.update();
@@ -38,7 +37,7 @@ public class Claw extends LinearOpMode {
     private void initialize(){
         servo = hardwareMap.get(Servo.class, "claw");
         servo.setDirection(Servo.Direction.FORWARD);
-        servo.setPosition(retract);
+        servo.setPosition(0);
     }
 
     private void edgeDetector(){

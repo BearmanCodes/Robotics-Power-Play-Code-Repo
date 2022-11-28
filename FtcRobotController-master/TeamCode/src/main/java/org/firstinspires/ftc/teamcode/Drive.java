@@ -94,19 +94,15 @@ public class Drive extends LinearOpMode {
             backLeft.setPower(backLeftPower);
             backRight.setPower(backRightPower);
             */
-            double y = gamepad1.left_stick_y; // Remember, this is reversed!
-            double x = -gamepad1.left_stick_x * 1.4; // Counteract imperfect strafing
+            double y = gamepad1.left_stick_y;
+            double x = -gamepad1.left_stick_x * 1.2;
             double rx = gamepad1.right_stick_x;
 
-            // Read inverse IMU heading, as the IMU heading is CW positive
             double botHeading = -imu.getAngularOrientation().firstAngle;
 
             double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
             double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
 
-            // Denominator is the largest motor power (absolute value) or 1
-            // This ensures all the powers maintain the same ratio, but only when
-            // at least one is out of the range [-1, 1]
             double frontLeftPower = (rotY + rotX + rx) * 0.75;
             double backLeftPower = (rotY - rotX + rx) * 0.75;
             double frontRightPower = (rotY - rotX - rx) * 0.75;

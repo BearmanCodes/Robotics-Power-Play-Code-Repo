@@ -64,6 +64,7 @@ public class FailureV8 extends LinearOpMode {
     double Vertical;
     double Horizontal;
     double Pivot;
+    BNO055IMU imu;
 
 
 
@@ -76,20 +77,39 @@ public class FailureV8 extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            /*
             Vertical = gamepad1.left_stick_y;
             Horizontal = gamepad1.left_stick_x * 1.4;
             Pivot = gamepad1.right_stick_x;
 
-            frontLeftPower = (-Pivot + (Vertical - Horizontal)) * 0.4;
+            frontLeftPower = (-Pivot + (Vertical - Horizontal));
             frontRightPower = (Pivot + Vertical + Horizontal);
-            backRightPower = (Pivot + (Vertical - Horizontal)) * 0.4;
-            backLeftPower = (-Pivot + Vertical + Horizontal) * 0.4;
+            backRightPower = (Pivot + (Vertical - Horizontal));
+            backLeftPower = (-Pivot + Vertical + Horizontal);
 
             frontLeft.setPower(frontLeftPower);
             frontRight.setPower(frontRightPower);
             backLeft.setPower(backLeftPower);
             backRight.setPower(backRightPower);
+            */
+            double y = gamepad1.left_stick_y;
+            double x = -gamepad1.left_stick_x * 1.2;
+            double rx = gamepad1.right_stick_x;
 
+            double botHeading = -imu.getAngularOrientation().firstAngle;
+
+            double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
+            double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
+
+            double frontLeftPower = (rotY + rotX + rx);
+            double backLeftPower = (rotY - rotX + rx);
+            double frontRightPower = (rotY - rotX - rx);
+            double backRightPower = (rotY + rotX - rx);
+
+            frontLeft.setPower(frontLeftPower);
+            backLeft.setPower(backLeftPower);
+            frontRight.setPower(frontRightPower);
+            backRight.setPower(backRightPower);
         }
     }
 
@@ -106,5 +126,9 @@ public class FailureV8 extends LinearOpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+        imu.initialize(parameters);
     }
 }
