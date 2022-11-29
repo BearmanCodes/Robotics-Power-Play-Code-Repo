@@ -27,122 +27,105 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Autonomous;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@Autonomous(name="Robot: Auto Drive By Encoder", group="Robot")
-public class Awesome extends LinearOpMode {
+
+/**
+ * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
+ * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
+ * of the FTC Driver Station. When a selection is made from the menu, the corresponding OpMode
+ * class is instantiated on the Robot Controller and executed.
+ *
+ * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
+ * It includes all the skeletal structure that all linear OpModes contain.
+ *
+ * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
+ */
+
+@TeleOp(name="Drive No Head", group="Cool OP modes")
+public class DriveNoHead extends LinearOpMode {
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
     BNO055IMU imu;
+    double backRightPower;
+    double frontRightPower;
+    double backLeftPower;
+    double frontLeftPower;
+    double Vertical;
+    double Horizontal;
+    double Pivot;
 
-    static final double TicksPerRev = 560;
-    static final double WheelInches = (75 / 25.4);
-    static final double TicksPerIn = TicksPerRev / (WheelInches * Math.PI);
+
 
     @Override
     public void runOpMode() {
-
-
         initialize();
 
-        // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
+        // run until the end of the match (driver presses STOP)
+        while (opModeIsActive()) {
 
+            Vertical = gamepad1.left_stick_y;
+            Horizontal = gamepad1.left_stick_x * 1.4;
+            Pivot = gamepad1.right_stick_x;
 
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
-        sleep(1000);  // pause to display final telemetry message.
-    }
+            frontLeftPower = (-Pivot + (Vertical - Horizontal)) * 0.65;
+            frontRightPower = (Pivot + Vertical + Horizontal) * 0.65;
+            backRightPower = (Pivot + (Vertical - Horizontal)) * 0.65;
+            backLeftPower = (-Pivot + Vertical + Horizontal) * 0.605;
 
-    public void Drive(double velocity,
-                      double frontLeftInches, double frontRightInches,
-                      double backLeftInches, double backRightInches,
-                      long timeout) {
-        int frontLeftTarget;
-        int frontRightTarget;
-        int backLeftTarget;
-        int backRightTarget;
+            frontLeft.setPower(frontLeftPower);
+            frontRight.setPower(frontRightPower);
+            backLeft.setPower(backLeftPower);
+            backRight.setPower(backRightPower);
+            /*
+            double y = gamepad1.left_stick_y;
+            double x = -gamepad1.left_stick_x * 1.2;
+            double rx = gamepad1.right_stick_x;
 
-        // Ensure that the opmode is still active
-        if (opModeIsActive()) {
-            frontLeftTarget = frontLeft.getCurrentPosition() + (int) (frontLeftInches * TicksPerIn);
-            frontRightTarget = frontRight.getCurrentPosition() + (int) (frontRightInches * TicksPerIn);
-            backLeftTarget = backLeft.getCurrentPosition() + (int) (backLeftInches * TicksPerIn);
-            backRightTarget = backRight.getCurrentPosition() + (int) (backRightInches * TicksPerIn);
+            double botHeading = -imu.getAngularOrientation().firstAngle;
 
-            allTargetPosition(frontLeftTarget, frontRightTarget, backLeftTarget, backRightTarget);
+            double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
+            double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
 
-            allMotorMode(DcMotor.RunMode.RUN_TO_POSITION);
+            double frontLeftPower = (rotY + rotX + rx) * 0.75;
+            double backLeftPower = (rotY - rotX + rx) * 0.75;
+            double frontRightPower = (rotY - rotX - rx) * 0.75;
+            double backRightPower = (rotY + rotX - rx) * 0.75;
 
-            allMotorVelocity(Math.abs(velocity));
-
-            while (opModeIsActive() && frontLeft.isBusy() && frontRight.isBusy() && backLeft.isBusy() && backRight.isBusy()) {
-                telemetry.addLine("WE ARE MOVING, WOOOOO!");
-                telemetry.update();
-            }
-
-            allMotorVelocity(0);
-
-            allMotorMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-            sleep(timeout);
+            frontLeft.setPower(frontLeftPower);
+            backLeft.setPower(backLeftPower);
+            frontRight.setPower(frontRightPower);
+            backRight.setPower(backRightPower);
+             */
         }
     }
 
-
-    private void initialize() {
+    private void initialize(){
         frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
-
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        allMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    }
-
-    public void allMotorMode(DcMotor.RunMode mode) {
-        frontLeft.setMode(mode);
-        frontRight.setMode(mode);
-        backLeft.setMode(mode);
-        backRight.setMode(mode);
-    }
-
-    public void allMotorVelocity(double velocity) {
-        frontLeft.setVelocity(velocity);
-        frontRight.setVelocity(velocity);
-        backLeft.setVelocity(velocity);
-        backRight.setVelocity(velocity);
-    }
-
-    public void allTargetPosition(int frontLeftPos, int frontRightPos,
-                                  int backLeftPos, int backRightPos){
-        frontLeft.setTargetPosition(frontLeftPos);
-        frontRight.setTargetPosition(frontRightPos);
-        backLeft.setTargetPosition(backLeftPos);
-        backRight.setTargetPosition(backRightPos);
     }
 }
-
