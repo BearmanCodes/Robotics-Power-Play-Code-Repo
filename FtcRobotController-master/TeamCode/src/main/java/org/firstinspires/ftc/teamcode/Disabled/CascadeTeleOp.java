@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Disabled;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
+@Disabled
 @TeleOp(name="Super Cool OP Mode \uD83D\uDE0E", group="Cool OP modes")
 public class CascadeTeleOp extends LinearOpMode {
 
@@ -98,7 +98,7 @@ public class CascadeTeleOp extends LinearOpMode {
             previousGamepad.copy(currentGamepad);
             currentGamepad.copy(gamepad1);
         } catch(RobotCoreException e){
-            telemetry.addLine("If you're seeing this, the program is trying to use a ga+"+
+            telemetry.addLine("If you're seeing this, the program is trying to use a ga"+
                     "mepad that does not exist. Fix it would ya?");
             telemetry.update();
         }
