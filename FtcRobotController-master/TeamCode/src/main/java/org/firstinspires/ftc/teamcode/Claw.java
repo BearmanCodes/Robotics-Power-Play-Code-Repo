@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.exception.RobotCoreException;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -12,6 +13,8 @@ public class Claw extends LinearOpMode {
     Servo servo;
     Gamepad currentGamepad = new Gamepad(); //These 2 are for an edge detector in case I need one later.
     Gamepad previousGamepad = new Gamepad();
+    DcMotorEx coreHex;
+    double hexPower;
 
 
     @Override
@@ -23,11 +26,13 @@ public class Claw extends LinearOpMode {
         //Do everything in these blocks until we press stop. Or something crashes.
         while (opModeIsActive()) {
             edgeDetector();
-            if (gamepad1.a){
-                servo.setPosition(servo.getPosition() + 0.1);
+            hexPower = -gamepad1.left_trigger + gamepad1.right_trigger;
+            coreHex.setPower(hexPower);
+            if (currentGamepad.a && !previousGamepad.a){
+                servo.setPosition(servo.getPosition() + 0.05);
             }
-            if (gamepad1.b){
-                servo.setPosition(servo.getPosition() - 0.1);
+            if (currentGamepad.b && !previousGamepad.b){
+                servo.setPosition(servo.getPosition() - 0.05);
             }
             telemetry.addData("Position: ", servo.getPosition());
             telemetry.update();
@@ -37,7 +42,7 @@ public class Claw extends LinearOpMode {
     private void initialize(){
         servo = hardwareMap.get(Servo.class, "claw");
         servo.setDirection(Servo.Direction.FORWARD);
-        servo.setPosition(0);
+        coreHex = hardwareMap.get(DcMotorEx.class, "hex");
     }
 
     private void edgeDetector(){

@@ -18,8 +18,9 @@ public class Cascade extends LinearOpMode {
 
     //Declare the variables
     private DcMotorEx motor;
-    private DcMotorEx extend;
+    private DcMotorEx coreHex;
     DistanceSensor colorSensor;
+    double hexPower;
     double distance;
     double cascadePower;
     Gamepad currentGamepad = new Gamepad(); //These 2 are for an edge detector in case I need one later.
@@ -33,6 +34,8 @@ public class Cascade extends LinearOpMode {
 
         //Do everything in these blocks until we press stop. Or something crashes.
         while (opModeIsActive()) {
+            hexPower = -gamepad1.left_trigger + gamepad1.right_trigger;
+            coreHex.setPower(hexPower);
             distance = colorSensor.getDistance(DistanceUnit.CM); //Update the color sensor distance right off the bat.
             cascadePower = -gamepad1.left_trigger + gamepad1.right_trigger;
             if(distance > 4.2 || cascadePower > 0){
@@ -48,9 +51,10 @@ public class Cascade extends LinearOpMode {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //STOP once the power's 0, prevents slipping.
         motor.setDirection(DcMotorSimple.Direction.REVERSE); //Reverses it's direction so that it goes the right way.
         colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor"); //Assign the color sensor.
-        extend = hardwareMap.get(DcMotorEx.class, "extend"); //Assign the extendable arm motor.
-        extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //Set it to Brake like the cascading kit.
-        extend.setDirection(DcMotorSimple.Direction.REVERSE); //Reverse it's direction, subject to change.
+        //extend = hardwareMap.get(DcMotorEx.class, "extend"); //Assign the extendable arm motor.
+        //extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //Set it to Brake like the cascading kit.
+        //extend.setDirection(DcMotorSimple.Direction.REVERSE); //Reverse it's direction, subject to change.
+        coreHex = hardwareMap.get(DcMotorEx.class, "hex");
         //These lines tighten the string just to make sure it's in the spool like it should be.
         motor.setPower(0.2);
         sleep(100);
