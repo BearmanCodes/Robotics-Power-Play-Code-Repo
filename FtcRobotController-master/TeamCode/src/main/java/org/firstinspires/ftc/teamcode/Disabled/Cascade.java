@@ -1,107 +1,77 @@
-/* Copyright (c) 2017 FIRST. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted (subject to the limitations in the disclaimer below) provided that
- * the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this list
- * of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * Neither the name of FIRST nor the names of its contributors may be used to endorse or
- * promote products derived from this software without specific prior written permission.
- *
- * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
- * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package org.firstinspires.ftc.teamcode.Disabled;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.checkerframework.checker.units.qual.C;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-
-/**
- * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
- * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
- * of the FTC Driver Station. When a selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
- * It includes all the skeletal structure that all linear OpModes contain.
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
- */
 @Disabled
-@Autonomous(name="CascadingAuto", group="Linear Opmode")
+@TeleOp(name="Purple Burglar Alarm \uD83D\uDE0E", group="Cool OP modes")
 public class Cascade extends LinearOpMode {
 
-    private DcMotorEx motor;
+    //Declare the variables
+    private DcMotorEx arm;
+    private DcMotorEx coreHex;
     DistanceSensor colorSensor;
+    double hexPower;
     double distance;
+    double cascadePower;
+    Gamepad currentGamepad = new Gamepad(); //These 2 are for an edge detector in case I need one later.
+    Gamepad previousGamepad = new Gamepad();
 
     @Override
     public void runOpMode() {
-        telemetry.addData("Status", "NO FIRE!");
-        telemetry.update();
+        initialize(); //Configure and setup all the hardware, among other things
 
-        initialize();
+        waitForStart(); //Start the actual program once we confirm the robot isn't on fire
 
-        motor.setPower(0.2);
-        sleep(350);
-        motor.setPower(0);
-        waitForStart();
-
-        if (opModeIsActive()) {
-            distance = colorSensor.getDistance(DistanceUnit.CM);
-            motor.setPower(1);
-            telemetry.addLine("Doing the thing, yeah yeah doing the thing");
-            telemetry.update();
-            sleep(2000);
-            motor.setPower(0);
-            sleep(3575);
-            motor.setPower(-1);
-            distance = colorSensor.getDistance(DistanceUnit.CM);
-            while (opModeIsActive() && distance > 4.2) {
-                distance = colorSensor.getDistance(DistanceUnit.CM);
-                telemetry.addLine("Reversing....");
-                telemetry.update();
-                distance = colorSensor.getDistance(DistanceUnit.CM);
+        //Do everything in these blocks until we press stop. Or something crashes.
+        while (opModeIsActive()) {
+            hexPower = -gamepad1.left_trigger + gamepad1.right_trigger;
+            coreHex.setPower(hexPower);
+            distance = colorSensor.getDistance(DistanceUnit.CM); //Update the color sensor distance right off the bat.
+            cascadePower = -gamepad1.left_trigger + gamepad1.right_trigger;
+            if(distance > 4.2 || cascadePower > 0){
+                arm.setPower(cascadePower);
+            }else{
+                arm.setPower(0);
             }
-            motor.setPower(0);
         }
     }
 
-    private void initialize(){
-        motor = hardwareMap.get(DcMotorEx.class, "motor");
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motor.setDirection(DcMotorSimple.Direction.REVERSE);
-        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor");
+    public void initialize(){
+        arm = hardwareMap.get(DcMotorEx.class, "motor"); //Assign the cascading kit motor.
+        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //STOP once the power's 0, prevents slipping.
+        arm.setDirection(DcMotorSimple.Direction.REVERSE); //Reverses it's direction so that it goes the right way.
+        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor"); //Assign the color sensor.
+        //extend = hardwareMap.get(DcMotorEx.class, "extend"); //Assign the extendable arm motor.
+        //extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //Set it to Brake like the cascading kit.
+        //extend.setDirection(DcMotorSimple.Direction.REVERSE); //Reverse it's direction, subject to change.
+        coreHex = hardwareMap.get(DcMotorEx.class, "hex");
+        //These lines tighten the string just to make sure it's in the spool like it should be.
+        arm.setPower(0.2);
+        sleep(100);
+        arm.setPower(0);
+        telemetry.addLine("It didn't catch on fire ඞ"); //It passed the fire test. WOOOH!
+        telemetry.update();
+    }
+
+    private void edgeDetector(){
+        try{
+            previousGamepad.copy(currentGamepad);
+            currentGamepad.copy(gamepad1);
+        } catch(RobotCoreException e){
+            telemetry.addLine("If you're seeing this, the program is trying to use a ga"+
+                    "mepad that does not exist. Fix it would ya?");
+            telemetry.update();
+        }
     }
 }
