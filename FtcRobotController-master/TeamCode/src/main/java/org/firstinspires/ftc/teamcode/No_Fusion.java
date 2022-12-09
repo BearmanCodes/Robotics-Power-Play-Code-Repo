@@ -30,6 +30,7 @@ package org.firstinspires.ftc.teamcode;/* Copyright (c) 2017 FIRST. All rights r
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -75,6 +76,8 @@ public class No_Fusion extends LinearOpMode {
     double Vertical;
     double Horizontal;
     double Pivot;
+    public CRServo crServo;
+
 
 
 
@@ -104,6 +107,7 @@ public class No_Fusion extends LinearOpMode {
             hexPower = -gamepad1.left_trigger + gamepad1.right_trigger;
             coreHex.setPower(hexPower);
             ArmGo();
+            servoGo();
         }
     }
 
@@ -123,6 +127,8 @@ public class No_Fusion extends LinearOpMode {
         arm = hardwareMap.get(DcMotorEx.class, "motor"); //Assign the cascading kit motor.
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //STOP once the power's 0, prevents slipping.
         arm.setDirection(DcMotorSimple.Direction.REVERSE); //Reverses it's direction so that it goes the right way.
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor"); //Assign the color sensor.
         //extend = hardwareMap.get(DcMotorEx.class, "extend"); //Assign the extendable arm motor.
         //extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //Set it to Brake like the cascading kit.
@@ -132,18 +138,34 @@ public class No_Fusion extends LinearOpMode {
         arm.setPower(0.2);
         sleep(100);
         arm.setPower(0);
-        telemetry.addLine("It didn't catch on fire ඞ"); //It passed the fire test. WOOOH!
+        telemetry.addLine("Let's up requiesce"); //It passed the fire test. WOOOH!
         telemetry.update();
 
+        crServo = hardwareMap.get(CRServo.class, "servo");
+        crServo.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 
     private void ArmGo(){
         distance = colorSensor.getDistance(DistanceUnit.CM); //Update the color sensor distance right off the bat.
-        cascadePower = -gamepad1.left_trigger + gamepad1.right_trigger;
+        cascadePower = -gamepad2.left_trigger + gamepad2.right_trigger;
         if(distance > 4.2 || cascadePower > 0){
             arm.setPower(cascadePower);
         }else {
             arm.setPower(0);
+            arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
+    private void servoGo(){
+        if (gamepad2.a) {
+            crServo.setPower(1);
+        }
+        if (gamepad2.b){
+            crServo.setPower(-1);
+        }
+        if (gamepad2.x){
+            crServo.setPower(0);
         }
     }
 }

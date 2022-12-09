@@ -64,14 +64,8 @@ public class Cascade extends LinearOpMode {
         telemetry.update();
     }
 
-    private void edgeDetector(){
-        try{
-            previousGamepad.copy(currentGamepad);
-            currentGamepad.copy(gamepad1);
-        } catch(RobotCoreException e){
-            telemetry.addLine("If you're seeing this, the program is trying to use a ga"+
-                    "mepad that does not exist. Fix it would ya?");
-            telemetry.update();
-        }
+    private void edgeDetector() throws RobotCoreException {
+        previousGamepad.copy(currentGamepad);
+        currentGamepad.copy(gamepad1);
     }
 }

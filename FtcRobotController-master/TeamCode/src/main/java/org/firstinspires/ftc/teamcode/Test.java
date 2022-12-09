@@ -21,7 +21,15 @@ public class Test extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()){
-
+            if (gamepad1.a) {
+                crServo.setPower(1);
+            }
+            if (gamepad1.b){
+                crServo.setPower(-1);
+            }
+            if (gamepad1.x){
+                crServo.setPower(0);
+            }
         }
     }
 }
