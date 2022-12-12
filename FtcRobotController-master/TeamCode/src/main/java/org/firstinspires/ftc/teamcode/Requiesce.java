@@ -27,7 +27,6 @@ package org.firstinspires.ftc.teamcode;/* Copyright (c) 2017 FIRST. All rights r
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -36,9 +35,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Disabled.Cascade;
 
 
 /**
@@ -53,17 +52,16 @@ import org.firstinspires.ftc.teamcode.Disabled.Cascade;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-@TeleOp(name="Go Go Gadget \uD83D\uDE0E", group="Cool OP modes")
-public class No_Fusion extends LinearOpMode {
+@TeleOp(name="Requiesce", group="Cool OP modes")
+public class Requiesce extends LinearOpMode {
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
     private DcMotorEx arm;
-    private DcMotorEx coreHex;
+    private final ElapsedTime time = new ElapsedTime();
     DistanceSensor colorSensor;
-    double hexPower;
     double cascadePower;
     double distance;
     double extendPower;
@@ -79,8 +77,7 @@ public class No_Fusion extends LinearOpMode {
     public CRServo crServo;
 
 
-
-
+    double reducer = 0.65;
     @Override
     public void runOpMode() {
         initialize();
@@ -94,18 +91,16 @@ public class No_Fusion extends LinearOpMode {
             Horizontal = gamepad1.left_stick_x * 1.2;
             Pivot = gamepad1.right_stick_x;
 
-            frontLeftPower = (-Pivot + (Vertical - Horizontal)) * 0.65;
-            frontRightPower = (Pivot + Vertical + Horizontal) * 0.65;
-            backRightPower = (Pivot + (Vertical - Horizontal)) * 0.65;
-            backLeftPower = (-Pivot + Vertical + Horizontal) * 0.605;
+            frontLeftPower = (-Pivot + (Vertical - Horizontal)) * reducer;
+            frontRightPower = (Pivot + Vertical + Horizontal) * reducer;
+            backRightPower = (Pivot + (Vertical - Horizontal)) * reducer;
+            backLeftPower = (-Pivot + Vertical + Horizontal) * reducer;
 
             frontLeft.setPower(frontLeftPower);
             frontRight.setPower(frontRightPower);
             backLeft.setPower(backLeftPower);
             backRight.setPower(backRightPower);
 
-            hexPower = -gamepad1.left_trigger + gamepad1.right_trigger;
-            coreHex.setPower(hexPower);
             ArmGo();
             servoGo();
         }
@@ -116,33 +111,36 @@ public class No_Fusion extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        arm = hardwareMap.get(DcMotorEx.class, "motor"); //Assign the cascading kit motor.
+        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor"); //Assign the color sensor.
+        crServo = hardwareMap.get(CRServo.class, "servo");
+
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        arm.setDirection(DcMotorSimple.Direction.FORWARD); //Reverses it's direction so that it goes the right way.
+        crServo.setDirection(DcMotorSimple.Direction.REVERSE);
+
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-
-        arm = hardwareMap.get(DcMotorEx.class, "motor"); //Assign the cascading kit motor.
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //STOP once the power's 0, prevents slipping.
-        arm.setDirection(DcMotorSimple.Direction.REVERSE); //Reverses it's direction so that it goes the right way.
+
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor"); //Assign the color sensor.
-        //extend = hardwareMap.get(DcMotorEx.class, "extend"); //Assign the extendable arm motor.
-        //extend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //Set it to Brake like the cascading kit.
-        //extend.setDirection(DcMotorSimple.Direction.REVERSE); //Reverse it's direction, subject to change.
-        coreHex = hardwareMap.get(DcMotorEx.class, "hex");
+
+
         //These lines tighten the string just to make sure it's in the spool like it should be.
         arm.setPower(0.2);
-        sleep(100);
+        long start = System.currentTimeMillis();
+        long end = start + 100;
+        while (System.currentTimeMillis() < end){
+            telemetry.addLine("Tightening");
+            telemetry.update();
+        }
         arm.setPower(0);
-        telemetry.addLine("Let's up requiesce"); //It passed the fire test. WOOOH!
+        telemetry.addLine("Let's up Requiesce"); //It passed the fire test. WOOOH!
         telemetry.update();
-
-        crServo = hardwareMap.get(CRServo.class, "servo");
-        crServo.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 
     private void ArmGo(){
@@ -158,14 +156,14 @@ public class No_Fusion extends LinearOpMode {
     }
 
     private void servoGo(){
-        if (gamepad2.a) {
-            crServo.setPower(1);
-        }
-        if (gamepad2.b){
-            crServo.setPower(-1);
-        }
-        if (gamepad2.x){
-            crServo.setPower(0);
-        }
+       if (gamepad2.right_bumper){
+           crServo.setPower(1);
+       }
+       if (gamepad2.left_bumper){
+           crServo.setPower(-1);
+       }
+       if (!gamepad2.right_bumper && !gamepad2.left_bumper){
+           crServo.setPower(0);
+       }
     }
 }

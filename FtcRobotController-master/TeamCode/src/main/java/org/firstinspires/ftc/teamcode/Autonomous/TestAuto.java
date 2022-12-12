@@ -19,7 +19,7 @@ public class TestAuto extends LinearOpMode {
     public void runOpMode(){
         tetrix = hardwareMap.get(DcMotorEx.class, "motor");
         tetrix.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        tetrix.setDirection(DcMotorSimple.Direction.REVERSE);
+        tetrix.setDirection(DcMotorSimple.Direction.FORWARD);
         tetrix.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         waitForStart();
 

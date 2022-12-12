@@ -60,6 +60,7 @@ public class Awesome extends LinearOpMode {
 
         //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
 
+        Drive(5000, 23, -23, -23, 23, 0);
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
