@@ -1,18 +1,20 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@Autonomous(name = "AHHH AUTO", group = "tests")
-public class TestAuto extends LinearOpMode {
+@Disabled
+@Autonomous(name = "Yup", group = "tests")
+public class Testums extends LinearOpMode {
     static final double TOLERANCE = 10;
     int pos = 0;
     public DcMotorEx tetrix;
-    int target = 8100;
-    double TPS = 4500;
+    int target = 9000;
+    double TPS = 5000;
     int error = 240;
 
     @Override
@@ -29,11 +31,12 @@ public class TestAuto extends LinearOpMode {
             if (error > 0) {
                 tetrix.setVelocity(TPS);
             } else if (error < 0) {
+                tetrix.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                
                 tetrix.setVelocity(-TPS);
             }
             output();
         }
-            tetrix.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
             tetrix.setVelocity(0);
             pos = tetrix.getCurrentPosition();
             error = target - pos;

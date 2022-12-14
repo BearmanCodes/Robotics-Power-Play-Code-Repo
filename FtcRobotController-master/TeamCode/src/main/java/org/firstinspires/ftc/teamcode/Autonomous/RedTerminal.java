@@ -31,14 +31,13 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-@Disabled
-@Autonomous(name="Disabled", group="Blue Auto")
-public class Awesome extends LinearOpMode {
+
+@Autonomous(name="Red Terminal", group="Red Auto")
+public class RedTerminal extends LinearOpMode {
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
@@ -61,7 +60,7 @@ public class Awesome extends LinearOpMode {
 
         //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
 
-        Drive(5000, 23, -23, -23, 23, 0);
+        Drive(2500, -29, 29, 29, -29, 0);
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);
