@@ -36,8 +36,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@Autonomous(name="Red Substation", group="Red Auto")
-public class RedSubstation extends LinearOpMode {
+@Autonomous(name="Left Park", group="Blue Auto")
+public class LeftPark extends LinearOpMode {
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
@@ -60,7 +60,7 @@ public class RedSubstation extends LinearOpMode {
 
         //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
 
-        Drive(2500, 28, -28, -28, 28, 0);
+        Drive(2500, -29, 29, 29, -29, 0); //Left strafe
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);

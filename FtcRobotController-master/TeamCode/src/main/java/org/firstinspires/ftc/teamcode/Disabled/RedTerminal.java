@@ -27,17 +27,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.Autonomous;
+package org.firstinspires.ftc.teamcode.Disabled;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
-@Autonomous(name="Blue Substation", group="Blue Auto")
-public class BlueSubstation extends LinearOpMode {
+@Disabled
+@Autonomous(name="Red Terminal", group="Red Auto")
+public class RedTerminal extends LinearOpMode {
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
@@ -60,7 +61,7 @@ public class BlueSubstation extends LinearOpMode {
 
         //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
 
-        Drive(2500, -28, 28, 28, -28, 0);
+        Drive(2500, -29, 29, 29, -29, 0); //Left strafe
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);
