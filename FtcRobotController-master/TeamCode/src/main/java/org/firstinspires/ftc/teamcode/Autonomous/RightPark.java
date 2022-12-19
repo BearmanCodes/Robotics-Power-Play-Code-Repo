@@ -36,7 +36,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@Autonomous(name="Right Park", group="Red Auto")
+@Autonomous(name="Right Park", group="Auto")
 public class RightPark extends LinearOpMode {
 
     private DcMotorEx frontLeft;
