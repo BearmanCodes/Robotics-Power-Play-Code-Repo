@@ -309,7 +309,7 @@ public class RobotAutoDriveByGyro_Linear extends LinearOpMode {
      *  Move will stop once the requested time has elapsed
      *  This function is useful for giving the robot a moment to stabilize it's heading between movements.
      *
-     * @param maxTurnSpeed      Maximum differential turn speed (range 0 to +1.0)
+     * @param maxTurnSpeed      Mam differential turn speed (range 0 to +1.0)
      * @param heading    Absolute Heading Angle (in Degrees) relative to last gyro reset.
      *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
      *                   If a relative angle is required, add/subtract from current heading.
