@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -22,11 +23,19 @@ public class Gyro extends LinearOpMode {
     int frontLeftTarget;
     int backRightTarget;
     int backLeftTarget;
+    double driveSpeed;
+    double turnSpeed;
+    double targetHeading;
+    double frontLeftSpeed;
+    double frontRightSpeed;
+    double backLeftSpeed;
+    double backRightSpeed;
     double robotHeading = 0;
     double headingOffset = 0;
     double headingError = 0;
     DcMotorEx[] allMotors = {frontLeft, frontRight, backLeft, backRight};
     BNO055IMU imu;
+    static final double P_DRIVE_GAIN = 0.03;
 
     static final double TicksPerRev = 560;
     static final double WheelInches = (75 / 25.4);
@@ -40,6 +49,8 @@ public class Gyro extends LinearOpMode {
 
         allMotorMode(DcMotor.RunMode.RUN_USING_ENCODER);
         resetHeading();
+
+        straight(0.4, 48.0, 0);
     }
 
     public void straight(double maxDriveSpeed,
@@ -53,10 +64,46 @@ public class Gyro extends LinearOpMode {
 
             setTargetPosition(frontLeftTarget, frontRightTarget, backLeftTarget, backRightTarget);
             allMotorMode(DcMotor.RunMode.RUN_TO_POSITION);
-            maxDriveSpeed = Math.abs(maxDriveSpeed)
+            maxDriveSpeed = Math.abs(maxDriveSpeed);
+            GoGoGo(maxDriveSpeed, 0);
+
+            while(opModeIsActive() && busy()){
+                turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+                // if driving in reverse, the motor correction also needs to be reversed
+                if (distance < 0)
+                    turnSpeed *= -1.0;
+
+                // Apply the turning correction to the current driving speed.
+                GoGoGo(driveSpeed, turnSpeed);
+            }
+
+            // Stop all motion & Turn off RUN_TO_POSITION
+            GoGoGo(0, 0);
+            allMotorMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 
+    public double getSteeringCorrection(double desiredHeading, double proportionalGain) {
+        targetHeading = desiredHeading;  // Save for telemetry
+
+        // Get the robot heading by applying an offset to the IMU heading
+        robotHeading = getRawHeading() - headingOffset;
+
+        // Determine the heading current error
+        headingError = targetHeading - robotHeading;
+
+        // Normalize the error to be within +/- 180 degrees
+        while (headingError > 180)  headingError -= 360;
+        while (headingError <= -180) headingError += 360;
+
+        // Multiply the error by the gain to determine the required steering correction/  Limit the result to +/- 1.0
+        return Range.clip(headingError * proportionalGain, -1, 1);
+    }
+
+
+    private boolean busy(){
+        return frontLeft.isBusy() && frontRight.isBusy() && backLeft.isBusy() && backRight.isBusy();
+    }
     private void allMotorMode(DcMotor.RunMode mode){
         for (DcMotorEx motor: allMotors){
             motor.setMode(mode);
@@ -67,6 +114,14 @@ public class Gyro extends LinearOpMode {
         for (DcMotorEx motor : allMotors){
             motor.setPower(power);
         }
+    }
+
+    private void setMotorPower(double frontLeftPower, double frontRightPower, double backLeftPower,
+                               double backRightPower){
+        frontLeft.setPower(frontLeftPower);
+        frontRight.setPower(frontRightPower);
+        backLeft.setPower(backLeftPower);
+        backRight.setPower(backRightPower);
     }
 
     private void setTargetPosition(int frontLeftPos, int frontRightPos,
@@ -105,4 +160,25 @@ public class Gyro extends LinearOpMode {
 
         allMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
+
+    public void GoGoGo(double drive, double turn){
+        driveSpeed = drive;
+        turnSpeed = turn;
+
+        frontLeftSpeed = drive + turn;
+        frontRightSpeed = drive + turn;
+        backLeftSpeed = drive + turn;
+        backRightSpeed = drive + turn;
+
+        double maxFront = Math.max(Math.abs(frontLeftSpeed), Math.abs(frontRightSpeed));
+        double maxBack = Math.max(Math.abs(frontLeftSpeed), Math.abs(frontRightSpeed));
+        if (maxFront > 1.0 || maxBack > 1.0){
+            frontLeftSpeed /= maxFront;
+            frontRightSpeed /= maxFront;
+            backLeftSpeed /= maxBack;
+            backRightSpeed /= maxBack;
+        }
+        setMotorPower(frontLeftSpeed, frontRightSpeed, backLeftSpeed, backRightSpeed);
+    }
+
 }

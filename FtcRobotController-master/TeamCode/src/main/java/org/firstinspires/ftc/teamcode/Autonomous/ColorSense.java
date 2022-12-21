@@ -37,13 +37,17 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@Autonomous(name="Left Park", group="Auto")
-public class LeftPark extends LinearOpMode {
+@Autonomous(name="Sleeve", group="Auto")
+public class ColorSense extends LinearOpMode {
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
+    ColorSensor colorSensor;
+    int red;
+    int green;
+    int blue;
     BNO055IMU imu;
 
     static final double TicksPerRev = 560;
@@ -61,7 +65,22 @@ public class LeftPark extends LinearOpMode {
 
         //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
 
-        Drive(2500, -29, 29, 29, -29, 0); //Left strafe
+        Drive(850, 25, 25, 25, 25, 0); //Forward
+        colorSensor.enableLed(true);
+        sleep(500);
+        colorLoad();
+        telemetryColor();
+        if (red > blue && red > green){
+            telemetryColor();
+            Drive(2500, -25, 25, 25, -25, 0); //Left Strafe
+        }
+        if (blue > red && blue > green){
+            telemetryColor();
+            Drive(2500, 25, -25, -25, 25, 0); //Right Strafe
+        }
+        if (green > red && green > blue){
+            telemetryColor();
+       }
         telemetry.addData("Path", "Complete");
         telemetry.update();
         sleep(1000);
@@ -108,6 +127,9 @@ public class LeftPark extends LinearOpMode {
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        colorSensor = hardwareMap.get(ColorSensor.class, "color");
+        colorSensor.enableLed(false);
+        colorLoad();
 
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -149,5 +171,17 @@ public class LeftPark extends LinearOpMode {
         backRight.setTargetPosition(backRightPos);
     }
 
+    public void colorLoad(){
+        red = colorSensor.red();
+        green = colorSensor.green();
+        blue = colorSensor.blue();
+    }
+
+    public void telemetryColor(){
+        telemetry.addData("Red: ", red);
+        telemetry.addData("Green: ", green);
+        telemetry.addData("Blue: ", blue);
+        telemetry.update();
+    }
 }
 
