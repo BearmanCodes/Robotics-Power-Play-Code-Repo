@@ -2,12 +2,15 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -26,12 +29,11 @@ public class Requiesce extends LinearOpMode {
     double frontRightPower;
     double backRightPower;
     double backLeftPower;
-    double distance;
+    Servo lClaw;
+    Servo rClaw;
     double cascadePower;
     private DcMotorEx arm;
-    public CRServo crServo;
     private final ElapsedTime time = new ElapsedTime();
-    DistanceSensor colorSensor;
     Gamepad currentGamepad = new Gamepad(); //These 2 are for an edge detector in case I need one later.
     Gamepad previousGamepad = new Gamepad();
 
@@ -56,19 +58,22 @@ public class Requiesce extends LinearOpMode {
         backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
         backRight = hardwareMap.get(DcMotorEx.class, "backRight");
         arm = hardwareMap.get(DcMotorEx.class, "motor"); //Assign the cascading kit motor.
-        colorSensor = hardwareMap.get(DistanceSensor.class, "colorSensor"); //Assign the color sensor.
-        crServo = hardwareMap.get(CRServo.class, "servo");
+        lClaw = hardwareMap.get(Servo.class, "lclaw");
+        rClaw = hardwareMap.get(Servo.class, "rclaw");
 
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         arm.setDirection(DcMotorSimple.Direction.FORWARD); //Reverses it's direction so that it goes the right way.
-        crServo.setDirection(DcMotorSimple.Direction.REVERSE);
+        rClaw.setDirection(Servo.Direction.REVERSE);
+        lClaw.setPosition(0.1);
+        rClaw.setPosition(0);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //STOP once the power's 0, prevents slipping.
+
 
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -104,26 +109,31 @@ public class Requiesce extends LinearOpMode {
     }
 
     private void ArmGo(){
-        distance = colorSensor.getDistance(DistanceUnit.CM); //Update the color sensor distance right off the bat.
         cascadePower = -gamepad2.left_trigger + gamepad2.right_trigger;
-        if(distance > 4.2 || cascadePower > 0){
-            arm.setPower(cascadePower);
-        }else {
-            arm.setPower(0);
-            arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
+        arm.setPower(cascadePower);
     }
 
     private void ClawGo(){
-       if (gamepad2.right_bumper){
-           crServo.setPower(1);
+        //Left claw, 0.1 opens it up, 0.3 closes it enough, 0.35/0.4 to really clamp.
+        //Right claw, 0.0 opens it up, 0.2 closes it just a bit, 0.25/0.3 to really close.
+       try {
+           edgeDetector();
+       } catch (RobotCoreException e){
+           telemetry.addLine("WHAT HAPPEN");
+           telemetry.update();
        }
-       if (gamepad2.left_bumper){
-           crServo.setPower(-1);
-       }
-       if (!gamepad2.right_bumper && !gamepad2.left_bumper){
-           crServo.setPower(0);
-       }
+        if (currentGamepad.cross && !previousGamepad.cross){ //Change to A once I get back
+            lClaw.setPosition(0.38);
+            rClaw.setPosition(0.28);
+        }
+        if (currentGamepad.circle && !previousGamepad.circle){
+            lClaw.setPosition(0.1);
+            rClaw.setPosition(0);
+        }
+    }
+
+    public void edgeDetector() throws RobotCoreException {
+        previousGamepad.copy(currentGamepad);
+        currentGamepad.copy(gamepad2);
     }
 }
