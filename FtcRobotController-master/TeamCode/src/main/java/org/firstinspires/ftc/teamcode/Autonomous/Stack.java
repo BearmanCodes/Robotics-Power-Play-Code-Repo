@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.exception.RobotCoreException;
@@ -40,7 +41,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
-
+@Disabled
 @Autonomous(name="Stack", group="Auto")
 public class Stack extends LinearOpMode {
 
@@ -60,6 +61,7 @@ public class Stack extends LinearOpMode {
     static final double TicksPerRev = 560;
     static final double WheelInches = (75 / 25.4);
     static final double TicksPerIn = TicksPerRev / (WheelInches * Math.PI);
+    public double inches;
 
     @Override
     public void runOpMode() {
@@ -70,9 +72,23 @@ public class Stack extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+        try {
+            edgeDetector();
+        } catch (RobotCoreException e) {
+            e.printStackTrace();
+        }
+
+        if (currentGamepad.a && !previousGamepad.a) {
+            inches++;
+        }
+
+        /*
+        Drive(6500, 45, 45, 45, 45, 100);
+        Drive(2000, 25, -25, 25, -25, 100);
+        Drive(3000, 24, 24, 24, 24, 100);
         armMove(4500, 1000, 50); //Reach
         clawGrab(); //Grab
-        sleep(500);
+        sleep(150);
         armMove(4500, 2700, 50); //Lift up
         goBack();
 
@@ -99,7 +115,7 @@ public class Stack extends LinearOpMode {
         sleep(500);
         armMove(4500, 1450, 50); //Lift up
         goBack();
-
+        */
 
         // 5th cone being the very top of the stack and 1st cone being the very bottom of the stack
         //1000 ticks to reach 5th cone. 2700/3000 ticks to lift the 5th cone off

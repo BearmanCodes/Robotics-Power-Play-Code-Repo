@@ -31,6 +31,7 @@ public class Requiesce extends LinearOpMode {
     double backLeftPower;
     Servo lClaw;
     Servo rClaw;
+    boolean clawToggle = false;
     double cascadePower;
     private DcMotorEx arm;
     private final ElapsedTime time = new ElapsedTime();
@@ -46,6 +47,9 @@ public class Requiesce extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            if (rClaw.getPosition() >= 0.25 && lClaw.getPosition() < 0.29){
+                lClaw.setPosition(0.29);
+            }
             DriveGo();
             ArmGo();
             ClawGo();
@@ -65,7 +69,7 @@ public class Requiesce extends LinearOpMode {
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         arm.setDirection(DcMotorSimple.Direction.FORWARD); //Reverses it's direction so that it goes the right way.
         rClaw.setDirection(Servo.Direction.REVERSE);
-        lClaw.setPosition(0.1);
+        lClaw.setPosition(0.15);
         rClaw.setPosition(0);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -116,18 +120,21 @@ public class Requiesce extends LinearOpMode {
     private void ClawGo(){
         //Left claw, 0.1 opens it up, 0.3 closes it enough, 0.35/0.4 to really clamp.
         //Right claw, 0.0 opens it up, 0.2 closes it just a bit, 0.25/0.3 to really close.
-       try {
-           edgeDetector();
-       } catch (RobotCoreException e){
-           telemetry.addLine("WHAT HAPPEN");
-           telemetry.update();
-       }
-        if (currentGamepad.cross && !previousGamepad.cross){ //Change to A once I get back
-            lClaw.setPosition(0.38);
+        try {
+            edgeDetector();
+        } catch (RobotCoreException e){
+            telemetry.addLine("WHAT HAPPEN");
+            telemetry.update();
+        }
+        if (currentGamepad.a && !previousGamepad.a){ //Change to A once I get back
+            clawToggle = !clawToggle;
+        }
+        if (clawToggle){
+            lClaw.setPosition(0.29);
             rClaw.setPosition(0.28);
         }
-        if (currentGamepad.circle && !previousGamepad.circle){
-            lClaw.setPosition(0.1);
+        else {
+            lClaw.setPosition(0.15);
             rClaw.setPosition(0);
         }
     }
