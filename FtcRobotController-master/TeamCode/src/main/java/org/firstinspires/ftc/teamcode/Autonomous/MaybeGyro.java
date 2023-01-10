@@ -29,16 +29,27 @@
 
 package org.firstinspires.ftc.teamcode.Autonomous;
 
+import android.graphics.drawable.GradientDrawable;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.vuforia.ObjectTargetResult;
 
-@Autonomous(name="Sleeve", group="Auto")
-public class ColorSense extends LinearOpMode {
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
+import java.security.AlgorithmConstraints;
+
+@Autonomous(name="Gyro", group="Auto")
+public class MaybeGyro extends LinearOpMode {
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
@@ -54,6 +65,8 @@ public class ColorSense extends LinearOpMode {
     static final double TicksPerRev = 560;
     static final double WheelInches = (75 / 25.4);
     static final double TicksPerIn = TicksPerRev / (WheelInches * Math.PI);
+    Orientation lastAngle = new Orientation();
+    double currentAngle = 0;
 
     @Override
     public void runOpMode() {
@@ -67,31 +80,15 @@ public class ColorSense extends LinearOpMode {
         //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
         arm.setPower(1);
         long start = System.currentTimeMillis();
-        long end = start + 1000;
+        long end = start + 300;
         while (System.currentTimeMillis() < end){
             telemetry.addLine("Tightening");
             telemetry.update();
         }
         arm.setPower(0);
-        Drive(850, 25, 25, 25, 25, 0); //Forward
-        colorSensor.enableLed(true);
         sleep(500);
-        colorLoad();
-        telemetryColor();
-        if (red > blue && red > green){
-            telemetryColor();
-            Drive(2500, -25, 25, 25, -25, 0); //Left Strafe
-        }
-        if (blue > red && blue > green){
-            telemetryColor();
-            Drive(2500, 25, -25, -25, 25, 0); //Right Strafe
-        }
-        if (green > red && green > blue){
-            telemetryColor();
-       }
-        telemetry.addData("Path", "Complete");
-        telemetry.update();
-        sleep(1000);
+        Drive(3500, 33, 33, 33, 33, 100);
+        turnTo(90);
     }
 
     public void Drive(double velocity,
@@ -129,6 +126,8 @@ public class ColorSense extends LinearOpMode {
         }
     }
 
+
+
     private void initialize() {
         frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
@@ -148,9 +147,14 @@ public class ColorSense extends LinearOpMode {
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -175,6 +179,21 @@ public class ColorSense extends LinearOpMode {
         backRight.setVelocity(velocity);
     }
 
+    public void allMotorPower(double power){
+        frontLeft.setPower(power);
+        frontRight.setPower(power);
+        backLeft.setPower(power);
+        backRight.setPower(power);
+    }
+
+    public void setMotorPower(double frontLeftPower, double frontRightPower, double backLeftPower,
+                              double backRightPower){
+        frontLeft.setPower(frontLeftPower);
+        frontRight.setPower(frontRightPower);
+        backLeft.setPower(backLeftPower);
+        backRight.setPower(backRightPower);
+    }
+
     public void allTargetPosition(int frontLeftPos, int frontRightPos,
                                   int backLeftPos, int backRightPos){
         frontLeft.setTargetPosition(frontLeftPos);
@@ -194,6 +213,53 @@ public class ColorSense extends LinearOpMode {
         telemetry.addData("Green: ", green);
         telemetry.addData("Blue: ", blue);
         telemetry.update();
+    }
+
+    public void resetAngle(){
+        lastAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        currentAngle = 0;
+    }
+
+    public double getAngle(){
+        Orientation orientation = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        double deltaAngle = orientation.firstAngle - lastAngle.firstAngle;
+        if (deltaAngle > 180) {
+            deltaAngle -= 360;
+        } else if (deltaAngle <= - 180){
+            deltaAngle += 360;
+        }
+        currentAngle += deltaAngle;
+        lastAngle = orientation;
+        return currentAngle;
+    }
+
+    public void turnCC(double degrees){
+        resetAngle();
+
+        double error = degrees;
+
+        while (opModeIsActive() && Math.abs(error) > 1){
+            double power = (error < 0 ? -0.2 : 0.2);
+            setMotorPower(-power, power, -power, power);
+            error = degrees - getAngle();
+            telemetry.addData("error: ", error);
+            telemetry.update();
+        }
+
+        allMotorPower(0);
+    }
+
+    public void turnTo(double degrees){
+        Orientation orientation = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        double error = degrees - orientation.firstAngle;
+
+        if (error > 180) {
+            error -= 360;
+        } else if (error <= - 180){
+            error += 360;
+        }
+        turnCC(error);
     }
 }
 

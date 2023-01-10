@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 @Disabled
-@Autonomous(name="Gyro", group="TESTS")
+@Autonomous(name="BadGyro", group="TESTS")
 public class Gyro extends LinearOpMode {
     private final DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
     private final DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
