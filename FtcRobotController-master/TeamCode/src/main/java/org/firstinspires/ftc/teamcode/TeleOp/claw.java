@@ -13,6 +13,8 @@ public class claw extends LinearOpMode {
     Servo rClaw;
     Gamepad previousGamepad = new Gamepad();
     Gamepad currentGamepad = new Gamepad();
+    double lpos;
+    double rpos;
 
     //Left claw, 0.1 opens it up, 0.3 closes it enough, 0.35/0.4 to really clamp.
     //Right claw, 0.0 opens it up, 0.2 closes it just a bit, 0.25/0.3 to really close.
@@ -30,14 +32,28 @@ public class claw extends LinearOpMode {
                 telemetry.addLine("SOMETHING WENT WRONG");
                 telemetry.update();
             }
-            if (currentGamepad.cross && !previousGamepad.cross){ //Change to A once I get back
-                lClaw.setPosition(0.4);
-                rClaw.setPosition(0.3);
+            if (currentGamepad.a && !previousGamepad.a){ //Change to A once I get back
+                lpos += 0.05;
+                output();
             }
-            if (currentGamepad.circle && !previousGamepad.circle){
-                lClaw.setPosition(0.1);
-                rClaw.setPosition(0);
+            if (currentGamepad.b && !previousGamepad.b){
+                lpos -= 0.05;
+                output();
             }
+            if (currentGamepad.x && !previousGamepad.x){
+                rpos += 0.05;
+                output();
+            }
+            if (currentGamepad.y && !previousGamepad.y){
+                rpos -= 0.05;
+                output();
+            }
+            if (currentGamepad.start && !previousGamepad.start){
+                lClaw.setPosition(lpos);
+                rClaw.setPosition(rpos);
+                output();
+            }
+            output();
         }
 
     }
@@ -46,7 +62,7 @@ public class claw extends LinearOpMode {
         lClaw = hardwareMap.get(Servo.class, "lclaw");
         rClaw = hardwareMap.get(Servo.class, "rclaw");
         rClaw.setDirection(Servo.Direction.REVERSE);
-        lClaw.setPosition(0.1);
+        lClaw.setPosition(0.2);
         rClaw.setPosition(0);
     }
 
@@ -55,4 +71,11 @@ public class claw extends LinearOpMode {
         currentGamepad.copy(gamepad2);
     }
 
+    public void output(){
+        telemetry.addData("Left Pos: ", lpos);
+        telemetry.addData("Right Pos: ", rpos);
+        telemetry.addData("Real Left Pos: ", lClaw.getPosition());
+        telemetry.addData("Real Right Pos: ", rClaw.getPosition());
+        telemetry.update();
+    }
 }

@@ -129,7 +129,6 @@ public class ColorSense extends LinearOpMode {
         }
     }
 
-
     private void initialize() {
         frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");

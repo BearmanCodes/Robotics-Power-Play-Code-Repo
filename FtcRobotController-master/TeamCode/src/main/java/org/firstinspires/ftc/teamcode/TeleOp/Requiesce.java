@@ -69,7 +69,7 @@ public class Requiesce extends LinearOpMode {
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         arm.setDirection(DcMotorSimple.Direction.FORWARD); //Reverses it's direction so that it goes the right way.
         rClaw.setDirection(Servo.Direction.REVERSE);
-        lClaw.setPosition(0.15);
+        lClaw.setPosition(0.2);
         rClaw.setPosition(0);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -130,11 +130,11 @@ public class Requiesce extends LinearOpMode {
             clawToggle = !clawToggle;
         }
         if (clawToggle){
-            lClaw.setPosition(0.29);
-            rClaw.setPosition(0.28);
+            lClaw.setPosition(0.35);
+            rClaw.setPosition(0.25);
         }
         else {
-            lClaw.setPosition(0.15);
+            lClaw.setPosition(0.2);
             rClaw.setPosition(0);
         }
     }
