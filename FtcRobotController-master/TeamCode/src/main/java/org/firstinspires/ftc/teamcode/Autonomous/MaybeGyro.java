@@ -39,6 +39,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.vuforia.ObjectTargetResult;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -48,15 +49,18 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.security.AlgorithmConstraints;
 
-@Autonomous(name="Gyro", group="Auto")
-public class MaybeGyro extends LinearOpMode {
+@Autonomous(name="PLEASE WORK2", group="Auto")
+public class SickGyro extends LinearOpMode {
 
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
     private DcMotorEx arm;
+    private Servo lClaw;
+    private Servo rClaw;
     ColorSensor colorSensor;
+    String color;
     int red;
     int green;
     int blue;
@@ -78,17 +82,64 @@ public class MaybeGyro extends LinearOpMode {
         waitForStart();
 
         //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
-        arm.setPower(1);
-        long start = System.currentTimeMillis();
-        long end = start + 300;
-        while (System.currentTimeMillis() < end){
-            telemetry.addLine("Tightening");
-            telemetry.update();
+        clawGrab(); //Grab
+        sleep(10); //Sec to think
+        armMove(5000, 7200, 10); //Lift arm up
+
+        Drive(850, 25, 25, 25, 25, 10); //Forward
+        colorSensor.enableLed(true);
+        sleep(10);
+        colorLoad();
+        telemetryColor();
+        if (red > blue && red > green){
+            telemetryColor();
+            color = "red";
         }
-        arm.setPower(0);
-        sleep(500);
-        Drive(3500, 33, 33, 33, 33, 100);
-        turnTo(90);
+        if (blue > red && blue > green){
+            telemetryColor();
+            color = "blue";
+        }
+        if (green > red && green > blue){
+            telemetryColor();
+            color = "green";
+        }
+        Drive(1750, 24, -24, -24, 24, 100);
+        //Drive(1750, 21, -21, -21, 21, 350);
+        //Drive(1750, 26, 26, 26, 26, 350);
+        sleep(200);
+        turnTo(-35);
+        telemetry.addData("ArmPos: ", arm.getCurrentPosition());
+        telemetry.update();
+        sleep(25);
+        int targetArm = (10000 - arm.getCurrentPosition()) + 300;
+        sleep(50);
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        sleep(25);
+        armMove(7500, targetArm, 25);
+        Drive(350, 8, 8, 8, 8, 100);
+        sleep(250);
+        armMove(100, arm.getCurrentPosition() - 200, 0)
+        clawOpen();
+        sleep(750);
+        switch (color){
+            case "red":
+                Drive(1000, -8, -8, -8 ,-8, 10);
+                turnTo(0);
+                Drive(2500, -50, 50, 50, -50, 10);
+                break;
+            case "green":
+                Drive(1000, -8, -8, -8, -8, 10);
+                turnTo(0);
+                Drive(2500, -25, 25, 25, -25, 10);
+                break;
+            case "blue":
+                Drive(1000, -8, -8, -8, -8, 10);
+                break;
+        }
+
+        //Drive(1750, 21, -21, -21, 21, 350);
+        //Drive(1750, 26, 26, 26, 26, 350);
+        //turnTo(-45);
     }
 
     public void Drive(double velocity,
@@ -139,6 +190,8 @@ public class MaybeGyro extends LinearOpMode {
         arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //STOP once the power's 0, prevents slipping.
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lClaw = hardwareMap.get(Servo.class, "lclaw");
+        rClaw = hardwareMap.get(Servo.class, "rclaw");
         colorSensor.enableLed(false);
         colorLoad();
 
@@ -146,6 +199,9 @@ public class MaybeGyro extends LinearOpMode {
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        rClaw.setDirection(Servo.Direction.REVERSE);
+        lClaw.setPosition(0.2);
+        rClaw.setPosition(0);
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -165,6 +221,22 @@ public class MaybeGyro extends LinearOpMode {
         allMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
+    public void armMove(double velocity, int ticks, int timeout){
+        arm.setTargetPosition(ticks);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setVelocity(velocity);
+
+        while (opModeIsActive() && arm.isBusy()){
+            telemetry.addData("Position: ", arm.getCurrentPosition());
+            telemetry.addData("Target: ", ticks);
+            telemetry.update();
+        }
+        arm.setVelocity(0);
+        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        sleep(timeout);
+    }
+
     public void allMotorMode(DcMotor.RunMode mode) {
         frontLeft.setMode(mode);
         frontRight.setMode(mode);
@@ -177,6 +249,16 @@ public class MaybeGyro extends LinearOpMode {
         frontRight.setVelocity(velocity);
         backLeft.setVelocity(velocity);
         backRight.setVelocity(velocity);
+    }
+
+    public void clawGrab(){
+        lClaw.setPosition(0.35);
+        rClaw.setPosition(0.25);
+    }
+
+    public void clawOpen(){
+        lClaw.setPosition(0.2);
+        rClaw.setPosition(0);
     }
 
     public void allMotorPower(double power){
@@ -240,7 +322,7 @@ public class MaybeGyro extends LinearOpMode {
         double error = degrees;
 
         while (opModeIsActive() && Math.abs(error) > 1){
-            double power = (error < 0 ? -0.2 : 0.2);
+            double power = (error < 0 ? -0.1 : 0.1);
             setMotorPower(-power, power, -power, power);
             error = degrees - getAngle();
             telemetry.addData("error: ", error);

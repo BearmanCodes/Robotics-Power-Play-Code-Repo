@@ -1,157 +1,172 @@
+/* Copyright (c) 2017 FIRST. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided that
+ * the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *
+ * Neither the name of FIRST nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+ * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package org.firstinspires.ftc.teamcode.Autonomous;
 
+import android.graphics.drawable.GradientDrawable;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.vuforia.ObjectTargetResult;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-@Disabled
-@Autonomous(name="BadGyro", group="TESTS")
+
+import java.security.AlgorithmConstraints;
+
+@Autonomous(name="OldGyro", group="Auto")
 public class Gyro extends LinearOpMode {
-    private final DcMotorEx frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
-    private final DcMotorEx frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
-    private final DcMotorEx backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
-    private final DcMotorEx backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-    int frontRightTarget;
-    int frontLeftTarget;
-    int backRightTarget;
-    int backLeftTarget;
-    double driveSpeed;
-    double turnSpeed;
-    double targetHeading;
-    double frontLeftSpeed;
-    double frontRightSpeed;
-    double backLeftSpeed;
-    double backRightSpeed;
-    double robotHeading = 0;
-    double headingOffset = 0;
-    double headingError = 0;
-    DcMotorEx[] allMotors = {frontLeft, frontRight, backLeft, backRight};
+
+    private DcMotorEx frontLeft;
+    private DcMotorEx frontRight;
+    private DcMotorEx backLeft;
+    private DcMotorEx backRight;
+    private DcMotorEx arm;
+    private Servo lClaw;
+    private Servo rClaw;
+    ColorSensor colorSensor;
+    int red;
+    int green;
+    int blue;
     BNO055IMU imu;
-    static final double P_DRIVE_GAIN = 0.03;
 
     static final double TicksPerRev = 560;
     static final double WheelInches = (75 / 25.4);
     static final double TicksPerIn = TicksPerRev / (WheelInches * Math.PI);
+    Orientation lastAngle = new Orientation();
+    double currentAngle = 0;
 
     @Override
-    public void runOpMode(){
+    public void runOpMode() {
+
+
         initialize();
 
+        // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        allMotorMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        resetHeading();
-
-        straight(0.4, 48.0, 0);
+        //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
+        clawGrab();
+        sleep(250);
+        armMove(750, 1500, 50);
+        Drive(1750, 21, -21, -21, 21, 350);
+        Drive(1750, 26, 26, 26, 26, 350);
+        turnTo(-45);
+        telemetry.addData("ArmPos: ", arm.getCurrentPosition());
+        telemetry.update();
+        sleep(5000);
+        int targetArm = (10000 - arm.getCurrentPosition()) + 225;
+        armMove(7500, 10000, 50);
+        Drive(350, 8, 8, 8, 8, 100);
+        //Drive(1750, 21, -21, -21, 21, 350);
+        //Drive(1750, 26, 26, 26, 26, 350);
+        //turnTo(-45);
     }
 
-    public void straight(double maxDriveSpeed,
-                         double distance,
-                         double heading){
-        if (opModeIsActive()){
-            frontRightTarget = frontRight.getCurrentPosition() + (int) (distance * TicksPerIn);
-            frontLeftTarget = frontLeft.getCurrentPosition() + (int) (distance * TicksPerIn);
-            backRightTarget = backRight.getCurrentPosition() + (int) (distance * TicksPerIn);
-            backLeftTarget = backLeft.getCurrentPosition() + (int) (distance * TicksPerIn);
+    public void Drive(double velocity,
+                      double frontLeftInches, double frontRightInches,
+                      double backLeftInches, double backRightInches,
+                      long timeout) {
+        int frontLeftTarget;
+        int frontRightTarget;
+        int backLeftTarget;
+        int backRightTarget;
 
-            setTargetPosition(frontLeftTarget, frontRightTarget, backLeftTarget, backRightTarget);
+        // Ensure that the opmode is still active
+        if (opModeIsActive()) {
+            frontLeftTarget = frontLeft.getCurrentPosition() + (int) (frontLeftInches * TicksPerIn);
+            frontRightTarget = frontRight.getCurrentPosition() + (int) (frontRightInches * TicksPerIn);
+            backLeftTarget = backLeft.getCurrentPosition() + (int) (backLeftInches * TicksPerIn);
+            backRightTarget = backRight.getCurrentPosition() + (int) (backRightInches * TicksPerIn);
+
+            allTargetPosition(frontLeftTarget, frontRightTarget, backLeftTarget, backRightTarget);
+
             allMotorMode(DcMotor.RunMode.RUN_TO_POSITION);
-            maxDriveSpeed = Math.abs(maxDriveSpeed);
-            GoGoGo(maxDriveSpeed, 0);
 
-            while(opModeIsActive() && busy()){
-                turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
-                // if driving in reverse, the motor correction also needs to be reversed
-                if (distance < 0)
-                    turnSpeed *= -1.0;
+            allMotorVelocity(Math.abs(velocity));
 
-                // Apply the turning correction to the current driving speed.
-                GoGoGo(driveSpeed, turnSpeed);
+            while (opModeIsActive() && frontLeft.isBusy() && frontRight.isBusy() && backLeft.isBusy() && backRight.isBusy()) {
+                telemetry.addLine("WE ARE MOVING, WOOOOO!");
+                telemetry.update();
             }
 
-            // Stop all motion & Turn off RUN_TO_POSITION
-            GoGoGo(0, 0);
+            allMotorVelocity(0);
+
             allMotorMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            sleep(timeout);
         }
     }
 
-    public double getSteeringCorrection(double desiredHeading, double proportionalGain) {
-        targetHeading = desiredHeading;  // Save for telemetry
 
-        // Get the robot heading by applying an offset to the IMU heading
-        robotHeading = getRawHeading() - headingOffset;
-
-        // Determine the heading current error
-        headingError = targetHeading - robotHeading;
-
-        // Normalize the error to be within +/- 180 degrees
-        while (headingError > 180)  headingError -= 360;
-        while (headingError <= -180) headingError += 360;
-
-        // Multiply the error by the gain to determine the required steering correction/  Limit the result to +/- 1.0
-        return Range.clip(headingError * proportionalGain, -1, 1);
-    }
-
-
-    private boolean busy(){
-        return frontLeft.isBusy() && frontRight.isBusy() && backLeft.isBusy() && backRight.isBusy();
-    }
-    private void allMotorMode(DcMotor.RunMode mode){
-        for (DcMotorEx motor: allMotors){
-            motor.setMode(mode);
-        }
-    }
-
-    private void allMotorPower(double power){
-        for (DcMotorEx motor : allMotors){
-            motor.setPower(power);
-        }
-    }
-
-    private void setMotorPower(double frontLeftPower, double frontRightPower, double backLeftPower,
-                               double backRightPower){
-        frontLeft.setPower(frontLeftPower);
-        frontRight.setPower(frontRightPower);
-        backLeft.setPower(backLeftPower);
-        backRight.setPower(backRightPower);
-    }
-
-    private void setTargetPosition(int frontLeftPos, int frontRightPos,
-                                   int backLeftPos, int backRightPos){
-        frontLeft.setTargetPosition(frontLeftPos);
-        frontRight.setTargetPosition(frontRightPos);
-        backLeft.setTargetPosition(backLeftPos);
-        backRight.setTargetPosition(backRightPos);
-    }
-
-    public double getRawHeading() {
-        Orientation angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        return angles.firstAngle;
-    }
-
-    public void resetHeading(){
-        headingOffset = getRawHeading();
-        robotHeading = 0;
-    }
 
     private void initialize() {
+        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        colorSensor = hardwareMap.get(ColorSensor.class, "color");
+        arm = hardwareMap.get(DcMotorEx.class, "motor"); //Assign the cascading kit motor.
+        arm.setDirection(DcMotorSimple.Direction.FORWARD); //Reverses it's direction so that it goes the right way.
+        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //STOP once the power's 0, prevents slipping.
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lClaw = hardwareMap.get(Servo.class, "lclaw");
+        rClaw = hardwareMap.get(Servo.class, "rclaw");
+        colorSensor.enableLed(false);
+        colorLoad();
+
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        rClaw.setDirection(Servo.Direction.REVERSE);
+        lClaw.setPosition(0.2);
+        rClaw.setPosition(0);
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -162,24 +177,127 @@ public class Gyro extends LinearOpMode {
         allMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
-    public void GoGoGo(double drive, double turn){
-        driveSpeed = drive;
-        turnSpeed = turn;
+    public void armMove(double velocity, int ticks, int timeout){
+        arm.setTargetPosition(ticks);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        arm.setVelocity(velocity);
 
-        frontLeftSpeed = drive + turn;
-        frontRightSpeed = drive + turn;
-        backLeftSpeed = drive + turn;
-        backRightSpeed = drive + turn;
-
-        double maxFront = Math.max(Math.abs(frontLeftSpeed), Math.abs(frontRightSpeed));
-        double maxBack = Math.max(Math.abs(frontLeftSpeed), Math.abs(frontRightSpeed));
-        if (maxFront > 1.0 || maxBack > 1.0){
-            frontLeftSpeed /= maxFront;
-            frontRightSpeed /= maxFront;
-            backLeftSpeed /= maxBack;
-            backRightSpeed /= maxBack;
+        while (opModeIsActive() && arm.isBusy()){
+            telemetry.addData("Position: ", arm.getCurrentPosition());
+            telemetry.addData("Target: ", ticks);
+            telemetry.update();
         }
-        setMotorPower(frontLeftSpeed, frontRightSpeed, backLeftSpeed, backRightSpeed);
+        arm.setVelocity(0);
+        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        sleep(timeout);
     }
 
+    public void allMotorMode(DcMotor.RunMode mode) {
+        frontLeft.setMode(mode);
+        frontRight.setMode(mode);
+        backLeft.setMode(mode);
+        backRight.setMode(mode);
+    }
+
+    public void allMotorVelocity(double velocity) {
+        frontLeft.setVelocity(velocity);
+        frontRight.setVelocity(velocity);
+        backLeft.setVelocity(velocity);
+        backRight.setVelocity(velocity);
+    }
+
+    public void clawGrab(){
+        lClaw.setPosition(0.35);
+        rClaw.setPosition(0.25);
+    }
+
+    public void clawOpen(){
+        lClaw.setPosition(0.2);
+        rClaw.setPosition(0);
+    }
+
+    public void allMotorPower(double power){
+        frontLeft.setPower(power);
+        frontRight.setPower(power);
+        backLeft.setPower(power);
+        backRight.setPower(power);
+    }
+
+    public void setMotorPower(double frontLeftPower, double frontRightPower, double backLeftPower,
+                              double backRightPower){
+        frontLeft.setPower(frontLeftPower);
+        frontRight.setPower(frontRightPower);
+        backLeft.setPower(backLeftPower);
+        backRight.setPower(backRightPower);
+    }
+
+    public void allTargetPosition(int frontLeftPos, int frontRightPos,
+                                  int backLeftPos, int backRightPos){
+        frontLeft.setTargetPosition(frontLeftPos);
+        frontRight.setTargetPosition(frontRightPos);
+        backLeft.setTargetPosition(backLeftPos);
+        backRight.setTargetPosition(backRightPos);
+    }
+
+    public void colorLoad(){
+        red = colorSensor.red();
+        green = colorSensor.green();
+        blue = colorSensor.blue();
+    }
+
+    public void telemetryColor(){
+        telemetry.addData("Red: ", red);
+        telemetry.addData("Green: ", green);
+        telemetry.addData("Blue: ", blue);
+        telemetry.update();
+    }
+
+    public void resetAngle(){
+        lastAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        currentAngle = 0;
+    }
+
+    public double getAngle(){
+        Orientation orientation = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        double deltaAngle = orientation.firstAngle - lastAngle.firstAngle;
+        if (deltaAngle > 180) {
+            deltaAngle -= 360;
+        } else if (deltaAngle <= - 180){
+            deltaAngle += 360;
+        }
+        currentAngle += deltaAngle;
+        lastAngle = orientation;
+        return currentAngle;
+    }
+
+    public void turnCC(double degrees){
+        resetAngle();
+
+        double error = degrees;
+
+        while (opModeIsActive() && Math.abs(error) > 1){
+            double power = (error < 0 ? -0.2 : 0.2);
+            setMotorPower(-power, power, -power, power);
+            error = degrees - getAngle();
+            telemetry.addData("error: ", error);
+            telemetry.update();
+        }
+
+        allMotorPower(0);
+    }
+
+    public void turnTo(double degrees){
+        Orientation orientation = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        double error = degrees - orientation.firstAngle;
+
+        if (error > 180) {
+            error -= 360;
+        } else if (error <= - 180){
+            error += 360;
+        }
+        turnCC(error);
+    }
 }
+

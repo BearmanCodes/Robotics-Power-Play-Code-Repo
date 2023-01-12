@@ -22,6 +22,7 @@ public class Requiesce extends LinearOpMode {
     private DcMotorEx frontRight;
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
+    Servo flipper;
     double Vertical;
     double Horizontal;
     double Pivot;
@@ -32,6 +33,7 @@ public class Requiesce extends LinearOpMode {
     Servo lClaw;
     Servo rClaw;
     boolean clawToggle = false;
+    boolean flipToggle = false;
     double cascadePower;
     private DcMotorEx arm;
     private final ElapsedTime time = new ElapsedTime();
@@ -64,13 +66,16 @@ public class Requiesce extends LinearOpMode {
         arm = hardwareMap.get(DcMotorEx.class, "motor"); //Assign the cascading kit motor.
         lClaw = hardwareMap.get(Servo.class, "lclaw");
         rClaw = hardwareMap.get(Servo.class, "rclaw");
+        flipper = hardwareMap.get(Servo.class, "flip");
+
 
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         arm.setDirection(DcMotorSimple.Direction.FORWARD); //Reverses it's direction so that it goes the right way.
         rClaw.setDirection(Servo.Direction.REVERSE);
         lClaw.setPosition(0.2);
-        rClaw.setPosition(0);
+        flipper.setPosition(0.33);
+        rClaw.setPosition(0.05);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -117,6 +122,24 @@ public class Requiesce extends LinearOpMode {
         arm.setPower(cascadePower);
     }
 
+    private void FlipGo(){
+        try {
+            edgeDetector();
+        } catch (RobotCoreException e){
+            telemetry.addLine("WHAT HAPPEN");
+            telemetry.update();
+        }
+        if (currentGamepad.b && !previousGamepad.b){ //Change to B once I get back
+            flipToggle = !flipToggle;
+        }
+        if (flipToggle){
+            flipper.setPosition(-0.02);
+        }
+        else {
+            flipper.setPosition(0.33);
+        }
+    }
+
     private void ClawGo(){
         //Left claw, 0.1 opens it up, 0.3 closes it enough, 0.35/0.4 to really clamp.
         //Right claw, 0.0 opens it up, 0.2 closes it just a bit, 0.25/0.3 to really close.
@@ -135,7 +158,7 @@ public class Requiesce extends LinearOpMode {
         }
         else {
             lClaw.setPosition(0.2);
-            rClaw.setPosition(0);
+            rClaw.setPosition(0.05);
         }
     }
 
