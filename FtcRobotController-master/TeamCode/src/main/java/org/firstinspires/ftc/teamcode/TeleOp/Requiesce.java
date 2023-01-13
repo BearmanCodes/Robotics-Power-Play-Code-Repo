@@ -22,6 +22,7 @@ public class Requiesce extends LinearOpMode {
     private DcMotorEx frontRight;
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
+    Gamepad.RumbleEffect rumbleEffect;
     Servo flipper;
     double Vertical;
     double Horizontal;
@@ -87,6 +88,11 @@ public class Requiesce extends LinearOpMode {
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        rumbleEffect = new Gamepad.RumbleEffect.Builder()
+                .addStep(1.0, 1.0, 500)
+                .addStep(0.0, 0.0, 1)
+                .build();
+
 
         //These lines tighten the string just to make sure it's in the spool like it should be.
         arm.setPower(0.2);
@@ -122,24 +128,6 @@ public class Requiesce extends LinearOpMode {
         arm.setPower(cascadePower);
     }
 
-    private void FlipGo(){
-        try {
-            edgeDetector();
-        } catch (RobotCoreException e){
-            telemetry.addLine("WHAT HAPPEN");
-            telemetry.update();
-        }
-        if (currentGamepad.b && !previousGamepad.b){ //Change to B once I get back
-            flipToggle = !flipToggle;
-        }
-        if (flipToggle){
-            flipper.setPosition(-0.02);
-        }
-        else {
-            flipper.setPosition(0.33);
-        }
-    }
-
     private void ClawGo(){
         //Left claw, 0.1 opens it up, 0.3 closes it enough, 0.35/0.4 to really clamp.
         //Right claw, 0.0 opens it up, 0.2 closes it just a bit, 0.25/0.3 to really close.
@@ -155,10 +143,21 @@ public class Requiesce extends LinearOpMode {
         if (clawToggle){
             lClaw.setPosition(0.35);
             rClaw.setPosition(0.25);
+            gamepad1.runRumbleEffect(rumbleEffect);
         }
         else {
             lClaw.setPosition(0.2);
             rClaw.setPosition(0.05);
+            gamepad1.runRumbleEffect(rumbleEffect);
+        }
+        if (currentGamepad.b && !previousGamepad.b){ //Change to B once I get back
+            flipToggle = !flipToggle;
+        }
+        if (flipToggle){
+            flipper.setPosition(-0.02);
+        }
+        else {
+            flipper.setPosition(0.33);
         }
     }
 

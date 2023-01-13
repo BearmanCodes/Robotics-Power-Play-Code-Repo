@@ -29,41 +29,33 @@
 
 package org.firstinspires.ftc.teamcode.Autonomous;
 
-import android.graphics.drawable.GradientDrawable;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.vuforia.ObjectTargetResult;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-import java.security.AlgorithmConstraints;
-@Disabled
-@Autonomous(name="OldGyro", group="Auto")
-public class Gyro extends LinearOpMode {
+@Autonomous(name="Left Side", group="Junction")
+public class LeftSide extends LinearOpMode {
 
-    private DcMotorEx frontLeft;
-    private DcMotorEx frontRight;
-    private DcMotorEx backLeft;
-    private DcMotorEx backRight;
-    private DcMotorEx arm;
-    private Servo lClaw;
-    private Servo rClaw;
+    private DcMotorEx frontLeft, frontRight, backLeft, backRight, arm;
+    private Servo lClaw, rClaw;
+
     ColorSensor colorSensor;
-    int red;
-    int green;
-    int blue;
+
+    String color;
+
+    int red, green, blue;
+
     BNO055IMU imu;
 
     static final double TicksPerRev = 560;
@@ -75,25 +67,52 @@ public class Gyro extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-
         initialize();
 
-        // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
         //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
-        clawGrab();
-        sleep(250);
-        armMove(750, 1500, 50);
-        Drive(1750, 21, -21, -21, 21, 350);
-        Drive(1750, 26, 26, 26, 26, 350);
-        turnTo(-45);
-        telemetry.addData("ArmPos: ", arm.getCurrentPosition());
-        telemetry.update();
-        sleep(5000);
-        int targetArm = (10000 - arm.getCurrentPosition()) + 225;
-        armMove(7500, 10000, 50);
-        Drive(350, 8, 8, 8, 8, 100);
+        clawGrab(); //Grab
+        sleep(10);
+
+        armMove(5000, 7200, 10); //Lift arm up to move out of the way
+
+        Drive(850, 25, 25, 25, 25, 10); //Forward to read cone at B5
+
+        colorSensor.enableLed(true);
+        sleep(10);
+
+        colorLoad();
+
+        telemetryColor();
+
+        storeColor();
+
+        Drive(1750, 25, -25, -25, 25, 200); //Strafe Right to reach B4/ and stop by the high junction
+        //Drive(1750, 21, -21, -21, 21, 350);
+        //Drive(1750, 26, 26, 26, 26, 350);
+
+        turnTo(-35); //Turn 35 degrees clockwise to face the junction
+        sleep(25);
+
+        int targetArm = (10000 - arm.getCurrentPosition()) + 300; //Set the arm position to this super arbitrary algorithim which works well enough to not over/undershoot. PID control maybe?
+        sleep(25);
+
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); //Reset arm position
+        sleep(25);
+
+        armMove(7500, targetArm, 25); //Move the arm up
+        sleep(25);
+
+        Drive(350, 8, 8, 8, 8, 50); //Move forward to put cone over the junction
+
+        armMove(350, arm.getCurrentPosition() - 400, 100); //Lower the arm a bit to be safe
+
+        clawOpen();
+        sleep(750);
+        arm.setPower(-0.75);
+        colorPark(); //Park in the signal zone corresponding to what the cone read earlier.
+
         //Drive(1750, 21, -21, -21, 21, 350);
         //Drive(1750, 26, 26, 26, 26, 350);
         //turnTo(-45);
@@ -247,6 +266,40 @@ public class Gyro extends LinearOpMode {
         blue = colorSensor.blue();
     }
 
+    public void storeColor(){
+        if (red > blue && red > green){
+            telemetryColor();
+            color = "red";
+        }
+        if (blue > red && blue > green){
+            telemetryColor();
+            color = "blue";
+        }
+        if (green > red && green > blue){
+            telemetryColor();
+            color = "green";
+        }
+    }
+
+    public void colorPark(){
+        switch (color){
+            case "red":
+                Drive(1000, -5, -5, -5 ,-5, 10);
+                turnTo(0);
+                Drive(2500, -50, 50, 50, -50, 10);
+                break;
+            case "green":
+                Drive(1000, -5, -5, -5, -5, 10);
+                turnTo(0);
+                Drive(2500, -25, 25, 25, -25, 10);
+                break;
+            case "blue":
+                Drive(1000, -5, -5, -5, -5, 10);
+                turnTo(0);
+                break;
+        }
+    }
+
     public void telemetryColor(){
         telemetry.addData("Red: ", red);
         telemetry.addData("Green: ", green);
@@ -279,7 +332,7 @@ public class Gyro extends LinearOpMode {
         double error = degrees;
 
         while (opModeIsActive() && Math.abs(error) > 1){
-            double power = (error < 0 ? -0.2 : 0.2);
+            double power = (error < 0 ? -0.1 : 0.1);
             setMotorPower(-power, power, -power, power);
             error = degrees - getAngle();
             telemetry.addData("error: ", error);

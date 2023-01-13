@@ -29,8 +29,6 @@
 
 package org.firstinspires.ftc.teamcode.Autonomous;
 
-import android.graphics.drawable.GradientDrawable;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -40,17 +38,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.vuforia.ObjectTargetResult;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-import java.security.AlgorithmConstraints;
-
-@Autonomous(name="PLEASE WORK2", group="Auto")
-public class SickGyro extends LinearOpMode {
+@Autonomous(name="RightSide", group="Junction")
+public class RightSide extends LinearOpMode {
 
     private DcMotorEx frontLeft, frontRight, backLeft, backRight, arm;
     private Servo lClaw, rClaw;
@@ -93,11 +88,11 @@ public class SickGyro extends LinearOpMode {
 
         storeColor();
 
-        Drive(1750, 24, -24, -24, 24, 200); //Strafe Right to reach B4/ and stop by the high junction
+        Drive(1000, -26, 26, 26, -26, 200); //Strafe Left to reach B4/ and stop by the high junction
         //Drive(1750, 21, -21, -21, 21, 350);
         //Drive(1750, 26, 26, 26, 26, 350);
 
-        turnTo(-35); //Turn 35 degrees clockwise to face the junction
+        turnTo(35); //Turn 35 degrees Counter Clockwise to face the junction
         sleep(25);
 
         int targetArm = (10000 - arm.getCurrentPosition()) + 300; //Set the arm position to this super arbitrary algorithim which works well enough to not over/undershoot. PID control maybe?
@@ -109,13 +104,13 @@ public class SickGyro extends LinearOpMode {
         armMove(7500, targetArm, 25); //Move the arm up
         sleep(25);
 
-        Drive(350, 8, 8, 8, 8, 100); //Move forward to put cone over the junction
+        Drive(350, 6, 6, 6, 6, 50); //Move forward to put cone over the junction
 
-        armMove(200, arm.getCurrentPosition() - 200, 100); //Lower the arm a bit to be safe
+        armMove(350, arm.getCurrentPosition() - 400, 100); //Lower the arm a bit to be safe
 
         clawOpen();
         sleep(750);
-
+        arm.setPower(-0.65);
         colorPark(); //Park in the signal zone corresponding to what the cone read earlier.
 
         //Drive(1750, 21, -21, -21, 21, 350);
@@ -289,18 +284,18 @@ public class SickGyro extends LinearOpMode {
     public void colorPark(){
         switch (color){
             case "red":
-                Drive(1000, -5, -5, -5 ,-5, 10);
+                Drive(1000, -6, -6, -6 ,-6, 10);
                 turnTo(0);
-                Drive(2500, -50, 50, 50, -50, 10);
                 break;
             case "green":
-                Drive(1000, -5, -5, -5, -5, 10);
+                Drive(1000, -6, -6, -6, -6, 10);
                 turnTo(0);
-                Drive(2500, -25, 25, 25, -25, 10);
+                Drive(2500, 25, -25, -25, 25, 10);
                 break;
             case "blue":
-                Drive(1000, -5, -5, -5, -5, 10);
+                Drive(1000, -6, -6, -6, -6, 10);
                 turnTo(0);
+                Drive(2500, 50, -50, -50, 50, 10);
                 break;
         }
     }
