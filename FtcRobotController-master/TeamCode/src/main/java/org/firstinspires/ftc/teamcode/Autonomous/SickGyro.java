@@ -52,18 +52,15 @@ import java.security.AlgorithmConstraints;
 @Autonomous(name="PLEASE WORK2", group="Auto")
 public class SickGyro extends LinearOpMode {
 
-    private DcMotorEx frontLeft;
-    private DcMotorEx frontRight;
-    private DcMotorEx backLeft;
-    private DcMotorEx backRight;
-    private DcMotorEx arm;
-    private Servo lClaw;
-    private Servo rClaw;
+    private DcMotorEx frontLeft, frontRight, backLeft, backRight, arm;
+    private Servo lClaw, rClaw;
+
     ColorSensor colorSensor;
+
     String color;
-    int red;
-    int green;
-    int blue;
+
+    int red, green, blue;
+
     BNO055IMU imu;
 
     static final double TicksPerRev = 560;
@@ -75,67 +72,51 @@ public class SickGyro extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-
         initialize();
 
-        // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
         //super helpful drive diagram https://gm0.org/en/latest/_images/mecanum-drive-directions.png
         clawGrab(); //Grab
-        sleep(10); //Sec to think
-        armMove(5000, 7200, 10); //Lift arm up
+        sleep(10);
 
-        Drive(850, 25, 25, 25, 25, 10); //Forward
+        armMove(5000, 7200, 10); //Lift arm up to move out of the way
+
+        Drive(850, 25, 25, 25, 25, 10); //Forward to read cone at B5
+
         colorSensor.enableLed(true);
         sleep(10);
+
         colorLoad();
+
         telemetryColor();
-        if (red > blue && red > green){
-            telemetryColor();
-            color = "red";
-        }
-        if (blue > red && blue > green){
-            telemetryColor();
-            color = "blue";
-        }
-        if (green > red && green > blue){
-            telemetryColor();
-            color = "green";
-        }
-        Drive(1750, 24, -24, -24, 24, 100);
+
+        storeColor();
+
+        Drive(1750, 24, -24, -24, 24, 200); //Strafe Right to reach B4/ and stop by the high junction
         //Drive(1750, 21, -21, -21, 21, 350);
         //Drive(1750, 26, 26, 26, 26, 350);
-        sleep(200);
-        turnTo(-35);
-        telemetry.addData("ArmPos: ", arm.getCurrentPosition());
-        telemetry.update();
+
+        turnTo(-35); //Turn 35 degrees clockwise to face the junction
         sleep(25);
-        int targetArm = (10000 - arm.getCurrentPosition()) + 300;
-        sleep(50);
-        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        int targetArm = (10000 - arm.getCurrentPosition()) + 300; //Set the arm position to this super arbitrary algorithim which works well enough to not over/undershoot. PID control maybe?
         sleep(25);
-        armMove(7500, targetArm, 25);
-        Drive(350, 8, 8, 8, 8, 100);
-        sleep(250);
-        armMove(100, arm.getCurrentPosition() - 200, 0)
+
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); //Reset arm position
+        sleep(25);
+
+        armMove(7500, targetArm, 25); //Move the arm up
+        sleep(25);
+
+        Drive(350, 8, 8, 8, 8, 100); //Move forward to put cone over the junction
+
+        armMove(200, arm.getCurrentPosition() - 200, 100); //Lower the arm a bit to be safe
+
         clawOpen();
         sleep(750);
-        switch (color){
-            case "red":
-                Drive(1000, -8, -8, -8 ,-8, 10);
-                turnTo(0);
-                Drive(2500, -50, 50, 50, -50, 10);
-                break;
-            case "green":
-                Drive(1000, -8, -8, -8, -8, 10);
-                turnTo(0);
-                Drive(2500, -25, 25, 25, -25, 10);
-                break;
-            case "blue":
-                Drive(1000, -8, -8, -8, -8, 10);
-                break;
-        }
+
+        colorPark(); //Park in the signal zone corresponding to what the cone read earlier.
 
         //Drive(1750, 21, -21, -21, 21, 350);
         //Drive(1750, 26, 26, 26, 26, 350);
@@ -288,6 +269,40 @@ public class SickGyro extends LinearOpMode {
         red = colorSensor.red();
         green = colorSensor.green();
         blue = colorSensor.blue();
+    }
+
+    public void storeColor(){
+        if (red > blue && red > green){
+            telemetryColor();
+            color = "red";
+        }
+        if (blue > red && blue > green){
+            telemetryColor();
+            color = "blue";
+        }
+        if (green > red && green > blue){
+            telemetryColor();
+            color = "green";
+        }
+    }
+
+    public void colorPark(){
+        switch (color){
+            case "red":
+                Drive(1000, -5, -5, -5 ,-5, 10);
+                turnTo(0);
+                Drive(2500, -50, 50, 50, -50, 10);
+                break;
+            case "green":
+                Drive(1000, -5, -5, -5, -5, 10);
+                turnTo(0);
+                Drive(2500, -25, 25, 25, -25, 10);
+                break;
+            case "blue":
+                Drive(1000, -5, -5, -5, -5, 10);
+                turnTo(0);
+                break;
+        }
     }
 
     public void telemetryColor(){
