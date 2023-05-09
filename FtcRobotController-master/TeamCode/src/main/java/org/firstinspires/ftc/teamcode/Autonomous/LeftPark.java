@@ -37,8 +37,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-@Disabled
-@Autonomous(name="Left Park", group="Auto")
+@Autonomous(name="Left Park", group="Park")
 public class LeftPark extends LinearOpMode {
 
     private DcMotorEx frontLeft;

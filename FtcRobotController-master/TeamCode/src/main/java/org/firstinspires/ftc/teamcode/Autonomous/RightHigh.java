@@ -44,8 +44,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-@Autonomous(name="RightSide", group="Junction")
-public class RightSide extends LinearOpMode {
+@Autonomous(name="Right High", group="High")
+public class RightHigh extends LinearOpMode {
 
     private DcMotorEx frontLeft, frontRight, backLeft, backRight, arm;
     private Servo lClaw, rClaw;
@@ -88,14 +88,14 @@ public class RightSide extends LinearOpMode {
 
         storeColor();
 
-        Drive(1000, -26, 26, 26, -26, 200); //Strafe Left to reach B4/ and stop by the high junction
+        Drive(1000, -28, 28, 28, -28, 200); //Strafe Left to reach B4/ and stop by the high junction
         //Drive(1750, 21, -21, -21, 21, 350);
         //Drive(1750, 26, 26, 26, 26, 350);
 
         turnTo(35); //Turn 35 degrees Counter Clockwise to face the junction
         sleep(25);
 
-        int targetArm = (10000 - arm.getCurrentPosition()) + 300; //Set the arm position to this super arbitrary algorithim which works well enough to not over/undershoot. PID control maybe?
+        int targetArm = (10000 - arm.getCurrentPosition()) + 475; //Set the arm position to this super arbitrary algorithim which works well enough to not over/undershoot. PID control maybe?
         sleep(25);
 
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); //Reset arm position
@@ -104,13 +104,13 @@ public class RightSide extends LinearOpMode {
         armMove(7500, targetArm, 25); //Move the arm up
         sleep(25);
 
-        Drive(350, 6, 6, 6, 6, 50); //Move forward to put cone over the junction
+        Drive(350, 5, 5, 5, 5, 50); //Move forward to put cone over the junction
 
-        armMove(350, arm.getCurrentPosition() - 400, 100); //Lower the arm a bit to be safe
+        armMove(350, arm.getCurrentPosition() - 500, 100); //Lower the arm a bit to be safe
 
         clawOpen();
         sleep(750);
-        arm.setPower(-0.65);
+        arm.setPower(-0.43);
         colorPark(); //Park in the signal zone corresponding to what the cone read earlier.
 
         //Drive(1750, 21, -21, -21, 21, 350);
@@ -177,7 +177,7 @@ public class RightSide extends LinearOpMode {
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
         rClaw.setDirection(Servo.Direction.REVERSE);
         lClaw.setPosition(0.2);
-        rClaw.setPosition(0);
+        rClaw.setPosition(0.05);
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -234,7 +234,7 @@ public class RightSide extends LinearOpMode {
 
     public void clawOpen(){
         lClaw.setPosition(0.2);
-        rClaw.setPosition(0);
+        rClaw.setPosition(0.05);
     }
 
     public void allMotorPower(double power){
@@ -284,16 +284,16 @@ public class RightSide extends LinearOpMode {
     public void colorPark(){
         switch (color){
             case "red":
-                Drive(1000, -6, -6, -6 ,-6, 10);
+                Drive(1000, -8, -8, -8 ,-8, 10);
                 turnTo(0);
                 break;
             case "green":
-                Drive(1000, -6, -6, -6, -6, 10);
+                Drive(1000, -8, -8, -8, -8, 10);
                 turnTo(0);
                 Drive(2500, 25, -25, -25, 25, 10);
                 break;
             case "blue":
-                Drive(1000, -6, -6, -6, -6, 10);
+                Drive(1000, -8, -8, -8, -8, 10);
                 turnTo(0);
                 Drive(2500, 50, -50, -50, 50, 10);
                 break;
